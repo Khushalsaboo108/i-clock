@@ -22,7 +22,7 @@ const mockCompanies: Company[] = [
 
 export function CompanySelectionScreen() {
   const router = useRouter()
-  const [companies] = useState<Company[]>(mockCompanies)
+  const [companies, setCompanies] = useState<Company[]>(mockCompanies)
 
   const handleSelectCompany = (companyId: string) => {
     router.push(`/company/${companyId}/employees`)
@@ -30,19 +30,15 @@ export function CompanySelectionScreen() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Building2 className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">Time & Attendance System</h1>
-          </div>
-          <p className="text-muted-foreground">Select a company to manage employees and attendance</p>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="flex items-center gap-3 pb-5">
+          <Building2 />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Time & Attendance System</h1>
+            <p className="text-sm text-muted-foreground">Select a company to manage employees and attendance</p>
+          </div>
+        </div>
         {/* Section Title */}
         <div className="flex items-center justify-between mb-8">
           <div>

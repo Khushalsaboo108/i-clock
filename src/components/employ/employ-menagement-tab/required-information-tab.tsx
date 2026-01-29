@@ -15,7 +15,7 @@ type Filter = {
   value: string
 }
 
-export function RequiredInformationTab() {
+export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
   const [filters, setFilters] = useState<Filter[]>([
     { id: "1", label: "Department", value: "Engineering" },
     { id: "2", label: "Location", value: "New York Office" },
@@ -68,24 +68,30 @@ export function RequiredInformationTab() {
               Employee Number <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
-              <Input id="employee-number" defaultValue="EMP-12345" className="h-10 pr-10" readOnly />
-              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                id="employee-number"
+                defaultValue={isNew ? "" : "EMP-12345"}
+                className="h-10 pr-10"
+                readOnly={!isNew}
+                placeholder={isNew ? "Enter Employee ID" : ""}
+              />
+              {!isNew && <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />}
             </div>
-            <p className="text-xs text-gray-500 italic mt-1">Must confirm to edit</p>
+            {!isNew && <p className="text-xs text-gray-500 italic mt-1">Must confirm to edit</p>}
           </div>
           <div>
             <Label htmlFor="first-name" className="text-sm font-medium text-gray-700 mb-2 block">
               First Name <span className="text-red-500">*</span>
             </Label>
-            <Input id="first-name" defaultValue="John" className="h-10" />
-            <p className="text-xs text-gray-500 italic mt-1">Auto-filled</p>
+            <Input id="first-name" defaultValue={isNew ? "" : "John"} className="h-10" placeholder={isNew ? "First Name" : ""} />
+            {!isNew && <p className="text-xs text-gray-500 italic mt-1">Auto-filled</p>}
           </div>
           <div>
             <Label htmlFor="last-name" className="text-sm font-medium text-gray-700 mb-2 block">
               Last Name <span className="text-red-500">*</span>
             </Label>
-            <Input id="last-name" defaultValue="Smith" className="h-10" />
-            <p className="text-xs text-gray-500 italic mt-1">Auto-filled</p>
+            <Input id="last-name" defaultValue={isNew ? "" : "Smith"} className="h-10" placeholder={isNew ? "Last Name" : ""} />
+            {!isNew && <p className="text-xs text-gray-500 italic mt-1">Auto-filled</p>}
           </div>
         </div>
       </section>

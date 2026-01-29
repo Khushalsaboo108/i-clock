@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { X, Clock, Trash2, Plus } from "lucide-react"
-import type { ClockingRecord } from "@/components/clockings-screen"
+import type { ClockingRecord } from "@/components/clockings/clockings-screen"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 

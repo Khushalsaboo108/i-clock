@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { EmployeeListScreen } from "@/components/employee-list-screen"
+import { EmployeeListScreen } from "@/components/employ/employee-list-screen"
 
 export default function EmployeesPage() {
   const params = useParams()

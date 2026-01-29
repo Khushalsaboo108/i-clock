@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import type { ClockingRecord } from "@/components/clockings-screen"
+import type { ClockingRecord } from "@/components/clockings/clockings-screen"
 import { format } from "date-fns"
 
 interface BulkEditModalProps {

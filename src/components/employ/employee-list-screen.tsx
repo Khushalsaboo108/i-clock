@@ -105,9 +105,9 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card sticky top-0 z-50">
+      <div className=" border-border bg-card sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 mb-2">
             <Button variant="ghost" size="icon" onClick={handleBackClick} className="rounded-full">
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -120,15 +120,6 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
           </div>
 
           {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, employee ID, or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
         </div>
       </div>
 
@@ -180,10 +171,21 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
         </div>
 
         {/* Employees Table */}
+        <div className="pb-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, employee ID, or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle>Employee Directory</CardTitle>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={() => router.push(`/company/${companyId}/employees/new`)}>
               <Plus className="w-4 h-4" />
               Add Employee
             </Button>

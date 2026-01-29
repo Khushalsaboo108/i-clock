@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { Edit2, Eye, ArrowUpDown } from "lucide-react"
-import type { ClockingRecord } from "@/components/clockings-screen"
+import type { ClockingRecord } from "@/components/clockings/clockings-screen"
 import { format } from "date-fns"
 
 interface ClockingsTableProps {

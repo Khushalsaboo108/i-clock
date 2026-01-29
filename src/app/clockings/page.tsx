@@ -1,4 +1,4 @@
-import { ClockingsScreen } from "@/components/clockings-screen"
+import { ClockingsScreen } from "@/components/clockings/clockings-screen"
 
 export default function Page() {
   return <ClockingsScreen />

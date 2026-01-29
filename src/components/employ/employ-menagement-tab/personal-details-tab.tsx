@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Lock, Eye } from "lucide-react"
 
-export function PersonalDetailsTab() {
+export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
   return (
     <div className="space-y-8">
       {/* Section 1: Contact Information */}
@@ -19,20 +19,20 @@ export function PersonalDetailsTab() {
             <Label htmlFor="street-address" className="text-sm font-medium text-gray-700 mb-2 block">
               Street Address
             </Label>
-            <Input id="street-address" defaultValue="123 Main Street" className="h-10" />
+            <Input id="street-address" defaultValue={isNew ? "" : "123 Main Street"} className="h-10" />
           </div>
           <div className="grid grid-cols-2 gap-6">
             <div>
               <Label htmlFor="suburb" className="text-sm font-medium text-gray-700 mb-2 block">
                 Suburb
               </Label>
-              <Input id="suburb" defaultValue="Manhattan" className="h-10" />
+              <Input id="suburb" defaultValue={isNew ? "" : "Manhattan"} className="h-10" />
             </div>
             <div>
               <Label htmlFor="city" className="text-sm font-medium text-gray-700 mb-2 block">
                 City
               </Label>
-              <Input id="city" defaultValue="New York" className="h-10" />
+              <Input id="city" defaultValue={isNew ? "" : "New York"} className="h-10" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-6">
@@ -40,20 +40,20 @@ export function PersonalDetailsTab() {
               <Label htmlFor="postal-code" className="text-sm font-medium text-gray-700 mb-2 block">
                 Postal Code
               </Label>
-              <Input id="postal-code" defaultValue="10001" className="h-10" />
+              <Input id="postal-code" defaultValue={isNew ? "" : "10001"} className="h-10" />
             </div>
             <div>
               <Label htmlFor="contact-number" className="text-sm font-medium text-gray-700 mb-2 block">
                 Contact Number
               </Label>
-              <Input id="contact-number" defaultValue="+1 (555) 123-4567" className="h-10" />
+              <Input id="contact-number" defaultValue={isNew ? "" : "+1 (555) 123-4567"} className="h-10" />
             </div>
           </div>
           <div>
             <Label htmlFor="id-number" className="text-sm font-medium text-gray-700 mb-2 block">
               ID Number
             </Label>
-            <Input id="id-number" defaultValue="123-45-6789" className="h-10" />
+            <Input id="id-number" defaultValue={isNew ? "" : "123-45-6789"} className="h-10" />
           </div>
         </div>
       </section>
