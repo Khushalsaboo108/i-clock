@@ -1,96 +1,172 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
+import { CalendarCheck2, LucideAlarmClockCheck, Type as type, type LucideIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
 import ModeToggle from "@/components/mode-toggle"
-import { LucideIcon } from "lucide-react"
+import { Home, Users, BarChart3, Clock } from "lucide-react"
 
-interface CommonHeaderProps {
-    title: string
-    description?: string
-    icon?: LucideIcon
+interface NavItem {
+  icon: LucideIcon
+  title: string
+  route: string
 }
 
-export function CommonHeader() {
-    const [date, setDate] = React.useState<Date | null>(null)
+const navItems: NavItem[] = [
+  {
+    icon: Home,
+    title: "Home",
+    route: "/",
+  },
+  {
+    icon: CalendarCheck2,
+    title: "Public Holidays",
+    route: "/public-holidays",
+  },
+  {
+    icon: Clock,
+    title: "Clockings",
+    route: "/clockings",
+  },
+//   {
+//     icon: Settings,
+//     title: "Settings",
+//     route: "/settings",
+//   },
+]
 
-    React.useEffect(() => {
-        // Set initial date on mount to match client time and avoid hydration mismatch
-        setDate(new Date())
+export default function CommonHeader() {
+  const [isOpen, setIsOpen] = React.useState(false)
+  const [date, setDate] = React.useState<Date | null>(null)
 
-        const timer = setInterval(() => {
-            setDate(new Date())
-        }, 1000)
+  React.useEffect(() => {
+    setDate(new Date())
 
-        return () => clearInterval(timer)
-    }, [])
+    const timer = setInterval(() => {
+      setDate(new Date())
+    }, 1000)
 
-    // Greeting logic
-    const getGreeting = () => {
-        if (!date) return ""
-        const hours = date.getHours()
-        if (hours < 12) return "Good morning"
-        if (hours < 18) return "Good afternoon"
-        return "Good evening"
-    }
+    return () => clearInterval(timer)
+  }, [])
 
-    // Date formatting
-    const formatDate = (date: Date) => {
-        return date.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        })
-    }
+  const getGreeting = () => {
+    if (!date) return ""
+    const hours = date.getHours()
+    if (hours < 12) return "Good morning"
+    if (hours < 18) return "Good afternoon"
+    return "Good evening"
+  }
 
-    // Time formatting
-    const formatTime = (date: Date) => {
-        return date.toLocaleTimeString("en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-        })
-    }
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+  }
 
-    return (
-        <div className="border-b border-border bg-card w-full">
-            <div className="max-w-7xl mx-auto px-6 py-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-end gap-4">
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
 
-                    {/* Left Side: Title & Description */}
-                    {/* <div className="flex items-center gap-3">
-                        {Icon && <Icon className="w-8 h-8 text-primary" />}
-                        <div>
-                            <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-                            {description && (
-                                <p className="text-sm text-muted-foreground">{description}</p>
-                            )}
-                        </div>
-                    </div> */}
+  return (
+    <header className="border-b border-border bg-card sticky top-0 z-50 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-4">
+          {/* Mobile: Hamburger + Greeting, Desktop: Navigation */}
+          <div className="flex items-center gap-3 flex-1">
+            {/* Mobile Menu */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon" className="flex-shrink-0">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64">
+                <nav className="flex flex-col gap-2 mt-8">
+                  {navItems.map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <Link 
+                        key={item.route} 
+                        href={item.route}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <Button 
+                          variant="ghost" 
+                          className="w-full justify-start gap-3"
+                        >
+                          <Icon className="w-5 h-5" />
+                          {item.title}
+                        </Button>
+                      </Link>
+                    )
+                  })}
+                </nav>
+              </SheetContent>
+            </Sheet>
 
-                    {/* Right Side: Greeting, Clock, Toggle */}
-                    <div className="flex items-center gap-6">
-                        {date && (
-                            <div className="hidden md:flex flex-col items-end text-right">
-                                <p className="text-sm font-medium text-muted-foreground">
-                                    {getGreeting()}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-lg font-bold text-foreground tabular-nums">
-                                        {formatTime(date)}
-                                    </span>
-                                    <span className="text-sm text-muted-foreground tabular-nums">
-                                        {formatDate(date)}
-                                    </span>
-                                </div>
-                            </div>
-                        )}
+            {/* Mobile Greeting */}
+            {date && (
+              <div className="md:hidden">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                  {getGreeting()}
+                </p>
+              </div>
+            )}
 
-                        <div className="border-l border-border pl-6">
-                            <ModeToggle />
-                        </div>
-                    </div>
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Link key={item.route} href={item.route}>
+                    <Button 
+                      variant="ghost" 
+                      className="gap-2 flex items-center text-sm"
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="hidden lg:inline">{item.title}</span>
+                    </Button>
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
 
+          {/* Right: Time, Greeting (Desktop), Mode */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Desktop Time & Greeting */}
+            {date && (
+              <div className="hidden md:flex flex-col items-end">
+                <span className="text-xs text-muted-foreground">
+                  {getGreeting()}
+                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-semibold text-foreground tabular-nums">
+                    {formatTime(date)}
+                  </span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {formatDate(date)}
+                  </span>
                 </div>
-            </div>
+              </div>
+            )}
+
+            {/* Divider */}
+            <div className="hidden md:block border-l border-border h-6" />
+
+            {/* Mode Toggle */}
+            <ModeToggle />
+          </div>
         </div>
-    )
+      </div>
+    </header>
+  )
 }

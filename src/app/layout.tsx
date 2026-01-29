@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/common-component/theme-provider"
-import { CommonHeader } from "@/components/common-component/common-header"
+import CommonHeader from "@/components/common-component/common-header"
 
 
 const geist = Geist({ subsets: ["latin"] })
