@@ -125,15 +125,15 @@ export function ClockingsScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-muted/40 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-8 py-5">
-        <h1 className="text-2xl font-semibold text-gray-900">Amend T&A Clockings</h1>
-        <p className="text-sm text-gray-500 mt-1">Review and edit employee time clockings and calculated hours</p>
+      <header className="bg-background border-b border-border px-8 py-5">
+        <h1 className="text-2xl font-semibold text-foreground">Amend T&A Clockings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Review and edit employee time clockings and calculated hours</p>
       </header>
 
       {/* Sticky Filter Bar */}
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
+      <div className="sticky top-0 z-20 bg-background border-b border-border shadow-sm">
         <FilterBar
           onBulkEditToggle={() => setIsBulkEditMode(!isBulkEditMode)}
           isBulkEditMode={isBulkEditMode}

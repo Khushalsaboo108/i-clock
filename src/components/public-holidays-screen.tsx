@@ -282,17 +282,17 @@ export default function PublicHolidaysScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
+    <div className="min-h-screen bg-muted/40">
       {/* Header */}
-      <div className="border-b bg-white px-8 py-6">
+      <div className="border-b bg-background px-8 py-6">
         <div className="mx-auto flex max-w-[1400px] items-start justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-[#111827]">Public Holiday Calendars</h1>
-            <p className="mt-1 text-sm text-[#6B7280]">
+            <h1 className="text-2xl font-semibold text-foreground">Public Holiday Calendars</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               Manage holiday calendars for different regions and employee groups
             </p>
           </div>
-          <Button onClick={() => setIsCreateModalOpen(true)} className="bg-[#2563EB] hover:bg-[#1d4ed8]">
+          <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             New Calendar
           </Button>
@@ -321,8 +321,8 @@ export default function PublicHolidaysScreen() {
                 onDeleteHoliday={handleDeleteHoliday}
               />
             ) : (
-              <div className="flex h-[400px] items-center justify-center rounded-lg border border-[#E5E7EB] bg-white">
-                <p className="text-[#6B7280]">Select a calendar to view details</p>
+              <div className="flex h-[400px] items-center justify-center rounded-lg border border-border bg-card">
+                <p className="text-muted-foreground">Select a calendar to view details</p>
               </div>
             )}
           </div>

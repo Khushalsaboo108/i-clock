@@ -37,13 +37,13 @@ export default function CalendarDetail({
   }
 
   return (
-    <div className="rounded-lg bg-white">
+    <div className="rounded-lg bg-card">
       {/* Header */}
-      <div className="border-b border-[#E5E7EB] p-6">
+      <div className="border-b border-border p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-[#111827]">{calendar.name}</h2>
-            <p className="mt-1 text-sm text-[#6B7280]">Calendar Code: {calendar.code}</p>
+            <h2 className="text-xl font-semibold text-foreground">{calendar.name}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Calendar Code: {calendar.code}</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
@@ -59,50 +59,50 @@ export default function CalendarDetail({
       </div>
 
       {/* Overview Section */}
-      <div className="border-b border-[#E5E7EB] p-6">
-        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-[#111827]">
+      <div className="border-b border-border p-6">
+        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
           <span>📊</span> Overview
         </h3>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <p className="text-sm text-[#6B7280]">Total Holidays</p>
-            <p className="mt-1 text-base font-semibold text-[#111827]">{calendar.holidayCount}</p>
+            <p className="text-sm text-muted-foreground">Total Holidays</p>
+            <p className="mt-1 text-base font-semibold text-foreground">{calendar.holidayCount}</p>
           </div>
           <div>
-            <p className="text-sm text-[#6B7280]">Status</p>
+            <p className="text-sm text-muted-foreground">Status</p>
             <Badge className={`mt-1 ${getStatusColor(calendar.status)}`}>
               {calendar.status === "active" && "🟢 "}
               {calendar.status.charAt(0).toUpperCase() + calendar.status.slice(1)}
             </Badge>
           </div>
           <div>
-            <p className="text-sm text-[#6B7280]">Assigned to</p>
-            <p className="mt-1 text-base font-semibold text-[#111827]">{calendar.employeeCount} employees</p>
+            <p className="text-sm text-muted-foreground">Assigned to</p>
+            <p className="mt-1 text-base font-semibold text-foreground">{calendar.employeeCount} employees</p>
           </div>
           <div>
-            <p className="text-sm text-[#6B7280]">Lost Time</p>
-            <p className="mt-1 text-base font-semibold text-[#111827]">
+            <p className="text-sm text-muted-foreground">Lost Time</p>
+            <p className="mt-1 text-base font-semibold text-foreground">
               {calendar.includeLostTime ? "Included" : "Not Included"}
             </p>
           </div>
           <div>
-            <p className="text-sm text-[#6B7280]">Created</p>
-            <p className="mt-1 text-base text-[#111827]">{calendar.created}</p>
+            <p className="text-sm text-muted-foreground">Created</p>
+            <p className="mt-1 text-base text-foreground">{calendar.created}</p>
           </div>
           <div>
-            <p className="text-sm text-[#6B7280]">Last Modified</p>
-            <p className="mt-1 text-base text-[#111827]">{calendar.lastModified}</p>
+            <p className="text-sm text-muted-foreground">Last Modified</p>
+            <p className="mt-1 text-base text-foreground">{calendar.lastModified}</p>
           </div>
         </div>
       </div>
 
       {/* Calendar View Section */}
-      <div className="border-b border-[#E5E7EB] p-6">
+      <div className="border-b border-border p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-[#111827]">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <span>📅</span> Calendar View
           </h3>
-          <Button onClick={onAddHoliday} size="sm" className="bg-[#2563EB] hover:bg-[#1d4ed8]">
+          <Button onClick={onAddHoliday} size="sm">
             <Plus className="mr-2 h-4 w-4" />
             Add Holiday
           </Button>
@@ -117,7 +117,7 @@ export default function CalendarDetail({
               holiday: holidayDates,
             }}
             modifiersClassNames={{
-              holiday: "bg-[#8B5CF6] text-white hover:bg-[#7C3AED]",
+              holiday: "bg-primary text-primary-foreground hover:bg-primary/90",
             }}
           />
         </div>
@@ -126,18 +126,18 @@ export default function CalendarDetail({
       {/* Holiday List Section */}
       <div className="p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-[#111827]">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <span>📋</span> Holiday List ({calendar.year})
           </h3>
-          <Button onClick={onAddHoliday} variant="outline" size="sm" className="text-[#2563EB] bg-transparent">
+          <Button onClick={onAddHoliday} variant="outline" size="sm" className="text-primary bg-transparent hover:bg-muted">
             <Plus className="mr-2 h-4 w-4" />
             Add Holiday
           </Button>
         </div>
 
         {calendar.holidays.length === 0 ? (
-          <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-[#E5E7EB]">
-            <p className="text-sm text-[#6B7280]">No holidays added yet. Click "Add Holiday" to get started.</p>
+          <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border">
+            <p className="text-sm text-muted-foreground">No holidays added yet. Click "Add Holiday" to get started.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -146,14 +146,14 @@ export default function CalendarDetail({
               .map((holiday) => (
                 <div
                   key={holiday.id}
-                  className="rounded-lg border border-[#E5E7EB] bg-white p-4 transition-shadow hover:shadow-md"
+                  className="rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-md"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
                       <span className="text-2xl">{holiday.icon}</span>
                       <div>
-                        <h4 className="font-medium text-[#111827]">{holiday.name}</h4>
-                        <p className="mt-1 text-sm text-[#6B7280]">
+                        <h4 className="font-medium text-foreground">{holiday.name}</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">
                           Date:{" "}
                           {new Date(holiday.date).toLocaleDateString("en-US", {
                             month: "long",
@@ -163,7 +163,7 @@ export default function CalendarDetail({
                           ({holiday.dayOfWeek})
                         </p>
                         <div className="mt-2 flex items-center gap-2">
-                          <span className="text-sm font-medium text-[#6B7280]">Lost Time:</span>
+                          <span className="text-sm font-medium text-muted-foreground">Lost Time:</span>
                           {holiday.includeLostTime ? (
                             <span className="flex items-center gap-1 text-sm text-[#10B981]">
                               <Check className="h-4 w-4" />

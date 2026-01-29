@@ -31,12 +31,12 @@ export default function CalendarList({ calendars, selectedCalendarId, onSelectCa
   }
 
   return (
-    <div className="rounded-lg bg-white p-6">
-      <h2 className="mb-4 text-lg font-semibold text-[#111827]">My Holiday Calendars</h2>
+    <div className="rounded-lg bg-card p-6">
+      <h2 className="mb-4 text-lg font-semibold text-foreground">My Holiday Calendars</h2>
 
       {/* Search */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search calendars..."
           value={searchQuery}
@@ -51,25 +51,24 @@ export default function CalendarList({ calendars, selectedCalendarId, onSelectCa
           <div
             key={calendar.id}
             onClick={() => onSelectCalendar(calendar.id)}
-            className={`cursor-pointer rounded-lg border p-4 transition-all hover:shadow-md ${
-              calendar.id === selectedCalendarId
-                ? "border-l-4 border-l-[#2563EB] bg-[#EFF6FF]"
-                : "border-[#E5E7EB] bg-white"
-            }`}
+            className={`cursor-pointer rounded-lg border p-4 transition-all hover:shadow-md ${calendar.id === selectedCalendarId
+                ? "border-l-4 border-l-[#2563EB] bg-[#EFF6FF] dark:bg-blue-900/20"
+                : "border-border bg-card"
+              }`}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-3">
-                <Calendar className="mt-0.5 h-5 w-5 text-[#8B5CF6]" />
+                <Calendar className="mt-0.5 h-5 w-5 text-primary" />
                 <div className="flex-1">
-                  <h3 className="font-medium text-[#111827]">{calendar.name}</h3>
-                  <div className="mt-1 flex items-center gap-2 text-sm text-[#6B7280]">
+                  <h3 className="font-medium text-foreground">{calendar.name}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                     <span>{calendar.holidayCount} holidays</span>
                     <span>•</span>
                     <Badge className={`text-xs ${getStatusColor(calendar.status)}`}>
                       {calendar.status.charAt(0).toUpperCase() + calendar.status.slice(1)}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-xs text-[#9CA3AF]">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {calendar.employeeCount > 0 ? `Used by ${calendar.employeeCount} employees` : "Not assigned"}
                   </p>
                 </div>

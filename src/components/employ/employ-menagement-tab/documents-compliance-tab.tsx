@@ -71,36 +71,34 @@ export function DocumentsComplianceTab() {
     },
   ])
 
-  const getStatusIcon = (status: Document["status"]) => {
-    switch (status) {
-      case "valid":
-        return <CheckCircle2 className="w-4 h-4 text-green-600" />
-      case "warning":
-        return <AlertTriangle className="w-4 h-4 text-amber-500" />
-      case "expired":
-        return <XCircle className="w-4 h-4 text-red-600" />
-    }
+  switch (status) {
+    case "valid":
+      return <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-500" />
+    case "warning":
+      return <AlertTriangle className="w-4 h-4 text-amber-500" />
+    case "expired":
+      return <XCircle className="w-4 h-4 text-red-600 dark:text-red-500" />
   }
 
   const getStatusBadge = (status: Document["status"]) => {
     switch (status) {
       case "valid":
         return (
-          <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+          <Badge className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300">
             <CheckCircle2 className="w-3 h-3 mr-1" />
             Valid
           </Badge>
         )
       case "warning":
         return (
-          <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
+          <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300">
             <AlertTriangle className="w-3 h-3 mr-1" />
             Expires in 2 months
           </Badge>
         )
       case "expired":
         return (
-          <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
+          <Badge className="bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300">
             <XCircle className="w-3 h-3 mr-1" />
             Expired
           </Badge>
@@ -115,31 +113,31 @@ export function DocumentsComplianceTab() {
   const DocumentCard = ({ doc }: { doc: Document }) => (
     <Card className="p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
-        <h3 className="font-medium text-gray-900">{doc.title}</h3>
+        <h3 className="font-medium text-foreground">{doc.title}</h3>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" className="h-8 px-2">
             <Edit className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/10 dark:text-red-400">
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
-      <div className="border-t border-gray-100 pt-3 space-y-2">
+      <div className="border-t border-border pt-3 space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">Check Date:</span>
-          <span className="text-gray-900">{doc.checkDate}</span>
+          <span className="text-muted-foreground">Check Date:</span>
+          <span className="text-foreground">{doc.checkDate}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">Expiry Date:</span>
+          <span className="text-muted-foreground">Expiry Date:</span>
           <div className="flex items-center gap-2">
-            <span className="text-gray-900">{doc.expiryDate}</span>
+            <span className="text-foreground">{doc.expiryDate}</span>
             {getStatusBadge(doc.status)}
           </div>
         </div>
         {doc.file && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Attachment:</span>
+            <span className="text-muted-foreground">Attachment:</span>
             <Button variant="link" className="h-auto p-0 text-blue-600 text-sm">
               {doc.file}
             </Button>
@@ -158,9 +156,9 @@ export function DocumentsComplianceTab() {
   return (
     <div className="space-y-8">
       {/* Section 1: Medical Information */}
-      <section className="border border-gray-200 rounded-lg p-6 bg-white">
+      <section className="border border-border rounded-lg p-6 bg-card">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-gray-900">Medical Information</h2>
+          <h2 className="text-base font-semibold text-foreground">Medical Information</h2>
           <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />
             Add Medical
@@ -174,9 +172,9 @@ export function DocumentsComplianceTab() {
       </section>
 
       {/* Section 2: Licenses */}
-      <section className="border border-gray-200 rounded-lg p-6 bg-white">
+      <section className="border border-border rounded-lg p-6 bg-card">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-gray-900">Licenses</h2>
+          <h2 className="text-base font-semibold text-foreground">Licenses</h2>
           <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />
             Add License
@@ -190,9 +188,9 @@ export function DocumentsComplianceTab() {
       </section>
 
       {/* Section 3: Training Certificates */}
-      <section className="border border-gray-200 rounded-lg p-6 bg-white">
+      <section className="border border-border rounded-lg p-6 bg-card">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-gray-900">Training Certificates</h2>
+          <h2 className="text-base font-semibold text-foreground">Training Certificates</h2>
           <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />
             Add Training
@@ -206,12 +204,12 @@ export function DocumentsComplianceTab() {
       </section>
 
       {/* Bulk Upload Section */}
-      <section className="border border-gray-200 rounded-lg p-6 bg-white">
-        <h2 className="text-base font-semibold text-gray-900 mb-5">Bulk Document Upload</h2>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50/50 transition-colors cursor-pointer">
-          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-sm font-medium text-gray-900 mb-1">Click to upload or drag and drop</p>
-          <p className="text-xs text-gray-500">PDF, PNG, JPG up to 10MB each</p>
+      <section className="border border-border rounded-lg p-6 bg-card">
+        <h2 className="text-base font-semibold text-foreground mb-5">Bulk Document Upload</h2>
+        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors cursor-pointer">
+          <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-sm font-medium text-foreground mb-1">Click to upload or drag and drop</p>
+          <p className="text-xs text-muted-foreground">PDF, PNG, JPG up to 10MB each</p>
         </div>
       </section>
     </div>
