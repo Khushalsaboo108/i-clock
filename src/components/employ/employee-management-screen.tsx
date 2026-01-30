@@ -8,6 +8,7 @@ import { EmployeeSidebar } from "@/components/employ/employ-menagement-tab/emplo
 import { RequiredInformationTab } from "@/components/employ/employ-menagement-tab/required-information-tab"
 import { PersonalDetailsTab } from "@/components/employ/employ-menagement-tab/personal-details-tab"
 import { DocumentsComplianceTab } from "@/components/employ/employ-menagement-tab/documents-compliance-tab"
+import { DisciplinaryRecordsTab } from "@/components/employ/employ-menagement-tab/disciplinary-records-tab"
 import { ArrowLeft } from "lucide-react"
 
 export function EmployeeManagementScreen({
@@ -19,7 +20,7 @@ export function EmployeeManagementScreen({
 }) {
   const router = useRouter()
   const isNew = employeeId === "new"
-  const [activeTab, setActiveTab] = useState<"required" | "personal" | "documents">("required")
+  const [activeTab, setActiveTab] = useState<"required" | "personal" | "documents" | "disciplinary">("required")
 
   const handleBackClick = () => {
     if (companyId) {
@@ -108,6 +109,17 @@ export function EmployeeManagementScreen({
                 >
                   Documents & Compliance
                 </button>
+                {!isNew && (
+                  <button
+                    onClick={() => setActiveTab("disciplinary")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "disciplinary"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                      }`}
+                  >
+                    Disciplinary Records
+                  </button>
+                )}
               </nav>
             </div>
 
@@ -116,6 +128,7 @@ export function EmployeeManagementScreen({
               {activeTab === "required" && <RequiredInformationTab isNew={isNew} />}
               {activeTab === "personal" && <PersonalDetailsTab isNew={isNew} />}
               {activeTab === "documents" && <DocumentsComplianceTab />}
+              {activeTab === "disciplinary" && <DisciplinaryRecordsTab />}
             </div>
           </div>
         </main>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
 import ModeToggle from "@/components/mode-toggle"
-import { Home, Users, BarChart3, Clock } from "lucide-react"
+import { Home, Users, BarChart3, Clock, CalendarOff, Repeat, Settings2 } from "lucide-react"
 
 interface NavItem {
   icon: LucideIcon
@@ -31,11 +31,21 @@ const navItems: NavItem[] = [
     title: "Clockings",
     route: "/clockings",
   },
-//   {
-//     icon: Settings,
-//     title: "Settings",
-//     route: "/settings",
-//   },
+  {
+    icon: CalendarOff,
+    title: "Absent Codes",
+    route: "/absent-codes",
+  },
+  {
+    icon: Settings2,
+    title: "Shifts",
+    route: "/shifts",
+  },
+  {
+    icon: Repeat,
+    title: "Work Cycles",
+    route: "/work-cycles",
+  },
 ]
 
 export default function CommonHeader() {
@@ -93,13 +103,13 @@ export default function CommonHeader() {
                   {navItems.map((item) => {
                     const Icon = item.icon
                     return (
-                      <Link 
-                        key={item.route} 
+                      <Link
+                        key={item.route}
                         href={item.route}
                         onClick={() => setIsOpen(false)}
                       >
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           className="w-full justify-start gap-3"
                         >
                           <Icon className="w-5 h-5" />
@@ -127,8 +137,8 @@ export default function CommonHeader() {
                 const Icon = item.icon
                 return (
                   <Link key={item.route} href={item.route}>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       className="gap-2 flex items-center text-sm"
                     >
                       <Icon className="w-4 h-4" />
