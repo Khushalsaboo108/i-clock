@@ -14,32 +14,8 @@ export default function ModeToggle() {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!mounted) return;
-
-    const isFirstVisit = !localStorage.getItem("theme");
-
-    if (isFirstVisit) {
-      // Set theme based on system preference on first visit
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-      setTheme(systemTheme);
-      localStorage.setItem("theme", systemTheme);
-    } else {
-      // Use the stored theme preference
-      const storedTheme = localStorage.getItem("theme");
-      if (storedTheme) {
-        setTheme(storedTheme);
-      }
-    }
-  }, [mounted, setTheme]);
-
   const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
   if (!mounted) {
