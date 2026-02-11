@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -53,6 +54,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -70,7 +72,7 @@ function LoginForm() {
       const response = await loginAction(data.username, data.password)
 
       if (response.success) {
-        window.location.href = callbackUrl
+        router.push(callbackUrl)
       } else {
         setError(response.message || "Login failed. Please try again.")
       }
