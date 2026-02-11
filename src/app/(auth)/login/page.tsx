@@ -34,7 +34,6 @@ import {
   User,
   AlertCircle,
 } from "lucide-react"
-import { loginAction } from "@/lib/actions"
 import { SERVER_CONFIG } from "@/lib/server/config"
 
 const loginSchema = z.object({
