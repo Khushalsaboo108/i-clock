@@ -5,7 +5,7 @@
 
 export const SERVER_CONFIG = {
   // Backend API URL - NOT prefixed with NEXT_PUBLIC_ so it stays hidden
-  API_URL: process.env.API_URL || "https://25fh9c86-8000.inc1.devtunnels.ms/api",
+  API_URL: process.env.API_URL || "https://i-clock-backend.onrender.com/api",
 
   // Request timeout
   TIMEOUT: 30000,
@@ -56,7 +56,7 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/work-cycles/${id}`,
   },
   PROFILE: {
-    ME: "/admin/profile",
+    ME: "/profile",
   },
   SITES: {
     BASE: "/site",

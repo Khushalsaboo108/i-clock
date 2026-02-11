@@ -5,6 +5,22 @@
 
 import { StarHalf } from "lucide-react"
 import { SERVER_CONFIG } from "./config"
+import { cookies } from 'next/headers'
+
+
+async function getAuthHeaders() {
+  const cookieStore = await cookies()
+
+  const cookieHeader = cookieStore
+    .getAll()
+    .map(c => `${c.name}=${c.value}`)
+    .join('; ')
+
+  return {
+    'Content-Type': 'application/json',
+    Cookie: cookieHeader,
+  }
+}
 
 export interface ServerApiResponse<T = unknown> {
   success: boolean
@@ -107,12 +123,12 @@ export const serverApi = {
   ): Promise<ServerApiResponse<T> | ServerApiError> {
     try {
       const url = buildUrl(endpoint, options?.params)
-      const headers = buildHeaders(options)
+      const headers = await getAuthHeaders()
 
       const response = await fetch(url, {
         method: "GET",
         headers,
-        cache: "no-store", // Don't cache API responses
+        credentials: "include", // ← Required for cookies
       })
 
       if (!response.ok) {
@@ -139,14 +155,13 @@ export const serverApi = {
   ): Promise<ServerApiResponse<T> | ServerApiError> {
     try {
       const url = buildUrl(endpoint, options?.params)
-      const headers = buildHeaders(options)
-
+      const headers = await getAuthHeaders()  // ← Gets cookies from Next.js
+  
       const response = await fetch(url, {
         method: "POST",
         headers,
-        body: body ? JSON.stringify(body) : undefined,
-        cache: "no-store",
-      })
+        credentials: "include", // ← Required for cookies
+      });
 
       if (!response.ok) {
         return await handleError(response)

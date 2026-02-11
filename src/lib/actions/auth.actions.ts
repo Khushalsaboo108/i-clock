@@ -1,11 +1,5 @@
 "use server"
 
-/**
- * Auth Server Actions
- * All authentication-related server actions
- * These run on the server - backend URL is NEVER exposed to browser
- */
-
 import { cookies } from "next/headers"
 import { serverApi, API_ENDPOINTS } from "@/lib/server"
 import type { LoginResponse, User } from "@/lib/api/types"
@@ -36,68 +30,36 @@ const TOKEN_COOKIE_OPTIONS = {
   maxAge: 60 * 60 * 24 * 7, // 7 days
 }
 
-/**
- * Login action
- * Authenticates user and stores tokens in HTTP-only cookies
- */
+
+export async function getProfileAction() {
+
+  const response = await serverApi.get<AdminProfile>(API_ENDPOINTS.PROFILE.ME, )
+
+  console.log("PROFILE RESPONSE:", response);
+
+  return response
+}
+
 export async function loginAction(username: string, password: string) {
   const response = await serverApi.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, {
     name: username,
     password,
   })
+  
+  console.log("LOGIN RESPONSE:", response);
 
-  if (response.success && response.data) {
-    const cookieStore = await cookies()
-
-    // Store tokens in HTTP-only cookies (more secure than localStorage)
-    // API returns snake_case: access_token, refresh_token
-    cookieStore.set("access_token", response.data.access_token, TOKEN_COOKIE_OPTIONS)
-    cookieStore.set("refresh_token", response.data.refresh_token, {
-      ...TOKEN_COOKIE_OPTIONS,
-      maxAge: 60 * 60 * 24 * 30, // 30 days for refresh token
-    })
-
-    // Return user data (without tokens - they're in cookies now)
-    // PLUS: Automatically fetch profile to set user_type/name cookies
-    try {
-      const profileResponse = await serverApi.get<AdminProfile>(API_ENDPOINTS.PROFILE.ME, {
-        token: response.data.access_token,
-      })
-
-      if (profileResponse.success && profileResponse.data) {
-        cookieStore.set("user_type", profileResponse.data.user_type, {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax" as const,
-          path: "/",
-          maxAge: 60 * 60 * 24 * 7,
-        })
-
-        cookieStore.set("user_name", profileResponse.data.name, {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax" as const,
-          path: "/",
-          maxAge: 60 * 60 * 24 * 7,
-        })
-      }
-    } catch (profileErr) {
-    }
-
-    return {
-      success: true,
-      data: {
-        user: response.data.user,
-      },
-      message: response.message,
-    }
-  }
-
-  // Return error
+if (!response.success) {
   return {
     success: false,
     message: response.message || "Login failed",
-  }
+  };
+}
+
+return {
+  success: true,
+  message: "Login successful",
+  data: response.data,
+};
 }
 
 /**
@@ -182,40 +144,4 @@ export async function resetPasswordAction(
  * Get admin profile
  * Fetches the authenticated admin's profile data
  */
-export async function getProfileAction() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("access_token")?.value
 
-  if (!token) {
-    return {
-      success: false,
-      message: "Not authenticated",
-      data: null,
-    }
-  }
-
-  const response = await serverApi.get<AdminProfile>(API_ENDPOINTS.PROFILE.ME, {
-    token,
-  })
-
-  // Store user type in a cookie for middleware/client access
-  if (response.success && response.data) {
-    cookieStore.set("user_type", response.data.user_type, {
-      httpOnly: false, // Allow client-side access for menu rendering
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    })
-
-    cookieStore.set("user_name", response.data.name, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    })
-  }
-
-  return response
-}

@@ -8,6 +8,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
 import ModeToggle from "@/components/mode-toggle"
 import { Home, Users, BarChart3, Clock, CalendarOff, Repeat, Settings2 } from "lucide-react"
+import { useEffect } from "react"
+import { getProfileAction } from "@/lib/actions"
 
 interface NavItem {
   icon: LucideIcon
@@ -52,7 +54,15 @@ export default function CommonHeader() {
   const [isOpen, setIsOpen] = React.useState(false)
   const [date, setDate] = React.useState<Date | null>(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
+    async function fetchProfile() {
+      await getProfileAction()
+    }
+
+    fetchProfile()
+  }, [])
+
+  useEffect(() => {
     setDate(new Date())
 
     const timer = setInterval(() => {

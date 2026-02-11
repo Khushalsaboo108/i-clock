@@ -34,7 +34,7 @@ import {
   User,
   AlertCircle,
 } from "lucide-react"
-import { loginAction, getProfileAction } from "@/lib/actions"
+import { loginAction } from "@/lib/actions"
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -49,7 +49,7 @@ type LoginFormData = z.infer<typeof loginSchema>
  */
 function LoginForm() {
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") || "/"
+  // const callbackUrl = searchParams.get("callbackUrl") || "/"
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -63,28 +63,39 @@ function LoginForm() {
   })
 
   const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await loginAction(data.username, data.password)
+      const response = await fetch(
+        "https://i-clock-backend.onrender.com/api/login", // your backend
+        {
+          method: "POST",
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }, // 🔑 THIS IS CRITICAL
+          body: JSON.stringify({
+            name: data.username,
+            password: data.password,
+          }),
+        },
+      );
 
-      if (response.success) {
-        window.location.href = callbackUrl
-      } else {
-        setError(response.message || "Login failed. Please try again.")
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        setError(result.message || "Login failed");
+        return;
       }
+
+      // Cookie is now stored in browser
+      window.location.href = "/";
     } catch (err) {
-      console.error("FULL LOGIN ERROR DETAILS:", {
-        message: err instanceof Error ? err.message : String(err),
-        stack: err instanceof Error ? err.stack : undefined,
-        error: err
-      })
-      setError("An unexpected error occurred. Please try again.")
+      setError("Unexpected error");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-background via-background to-muted/50 px-4">
