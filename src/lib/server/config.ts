@@ -6,6 +6,7 @@
 export const SERVER_CONFIG = {
   // Backend API URL - NOT prefixed with NEXT_PUBLIC_ so it stays hidden
   API_URL: process.env.API_URL || "https://i-clock-backend.onrender.com/api",
+  // API_URL: process.env.API_URL || "http://localhost:8000/api",
 
   // Request timeout
   TIMEOUT: 30000,
