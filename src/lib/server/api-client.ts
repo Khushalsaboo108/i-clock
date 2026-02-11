@@ -5,22 +5,7 @@
 
 import { StarHalf } from "lucide-react"
 import { SERVER_CONFIG } from "./config"
-import { cookies } from 'next/headers'
-
-
-async function getAuthHeaders() {
-  const cookieStore = await cookies()
-
-  const cookieHeader = cookieStore
-    .getAll()
-    .map(c => `${c.name}=${c.value}`)
-    .join('; ')
-
-  return {
-    'Content-Type': 'application/json',
-    Cookie: cookieHeader,
-  }
-}
+import { cookies } from "next/headers"
 
 export interface ServerApiResponse<T = unknown> {
   success: boolean
@@ -69,19 +54,27 @@ function buildUrl(endpoint: string, params?: RequestOptions["params"]): string {
 /**
  * Build request headers
  */
-function buildHeaders(options?: RequestOptions): HeadersInit {
+async function buildHeaders(options?: RequestOptions): Promise<HeadersInit> {
+  const cookieStore = await cookies()
+
+  // Get token from cookie (change name if needed)
+  const tokenFromCookie = cookieStore.get("access_token")?.value
+
+  const token = options?.token || tokenFromCookie
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json",
     ...options?.headers,
   }
 
-  if (options?.token) {
-    headers.Authorization = `Bearer ${options.token}`
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
   }
 
   return headers
 }
+
 
 /**
  * Handle API errors
@@ -123,12 +116,12 @@ export const serverApi = {
   ): Promise<ServerApiResponse<T> | ServerApiError> {
     try {
       const url = buildUrl(endpoint, options?.params)
-      const headers = await getAuthHeaders()
+      const headers = await buildHeaders(options)
 
       const response = await fetch(url, {
         method: "GET",
         headers,
-        credentials: "include", // ← Required for cookies
+        cache: "no-store", // Don't cache API responses
       })
 
       if (!response.ok) {
@@ -155,13 +148,14 @@ export const serverApi = {
   ): Promise<ServerApiResponse<T> | ServerApiError> {
     try {
       const url = buildUrl(endpoint, options?.params)
-      const headers = await getAuthHeaders()  // ← Gets cookies from Next.js
-  
+      const headers = await buildHeaders(options)
+
       const response = await fetch(url, {
         method: "POST",
         headers,
-        credentials: "include", // ← Required for cookies
-      });
+        body: body ? JSON.stringify(body) : undefined,
+        cache: "no-store",
+      })
 
       if (!response.ok) {
         return await handleError(response)
@@ -187,7 +181,7 @@ export const serverApi = {
   ): Promise<ServerApiResponse<T> | ServerApiError> {
     try {
       const url = buildUrl(endpoint, options?.params)
-      const headers = buildHeaders(options)
+      const headers = await buildHeaders(options)
 
       const response = await fetch(url, {
         method: "PUT",
@@ -220,7 +214,7 @@ export const serverApi = {
   ): Promise<ServerApiResponse<T> | ServerApiError> {
     try {
       const url = buildUrl(endpoint, options?.params)
-      const headers = buildHeaders(options)
+      const headers = await buildHeaders(options)
 
       const response = await fetch(url, {
         method: "PATCH",
@@ -252,7 +246,7 @@ export const serverApi = {
   ): Promise<ServerApiResponse<T> | ServerApiError> {
     try {
       const url = buildUrl(endpoint, options?.params)
-      const headers = buildHeaders(options)
+      const headers = await buildHeaders(options)
 
       const response = await fetch(url, {
         method: "DELETE",

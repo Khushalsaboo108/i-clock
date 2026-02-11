@@ -35,6 +35,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { loginAction } from "@/lib/actions"
+import { SERVER_CONFIG } from "@/lib/server/config"
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -68,7 +69,7 @@ function LoginForm() {
 
     try {
       const response = await fetch(
-        "https://i-clock-backend.onrender.com/api/login", // your backend
+        `${SERVER_CONFIG.API_URL}/login`,
         {
           method: "POST",
           credentials: 'include',

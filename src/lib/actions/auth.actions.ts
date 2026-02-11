@@ -40,27 +40,27 @@ export async function getProfileAction() {
   return response
 }
 
-export async function loginAction(username: string, password: string) {
-  const response = await serverApi.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, {
-    name: username,
-    password,
-  })
+// export async function loginAction(username: string, password: string) {
+//   const response = await serverApi.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, {
+//     name: username,
+//     password,
+//   })
   
-  console.log("LOGIN RESPONSE:", response);
+//   console.log("LOGIN RESPONSE:", response);
 
-if (!response.success) {
-  return {
-    success: false,
-    message: response.message || "Login failed",
-  };
-}
+// if (!response.success) {
+//   return {
+//     success: false,
+//     message: response.message || "Login failed",
+//   };
+// }
 
-return {
-  success: true,
-  message: "Login successful",
-  data: response.data,
-};
-}
+// return {
+//   success: true,
+//   message: "Login successful",
+//   data: response.data,
+// };
+// }
 
 /**
  * Logout action
