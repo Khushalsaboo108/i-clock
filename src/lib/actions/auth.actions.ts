@@ -8,7 +8,7 @@
 
 import { cookies } from "next/headers"
 import { serverApi, API_ENDPOINTS } from "@/lib/server"
-import type { LoginResponse, User } from "@/lib/api/types"
+import type { LoginResponse, User } from "@/lib/types"
 
 // Profile Types
 export type UserType = "Super Admin" | "Admin" | "Manager" | "User"
@@ -33,7 +33,7 @@ const TOKEN_COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   path: "/",
-  maxAge: 60 * 60 * 24 * 7, // 7 days
+  maxAge: 60 * 60 * 24 * 1, // 1 day
 }
 
 /**
@@ -45,18 +45,20 @@ export async function loginAction(username: string, password: string) {
     name: username,
     password,
   })
-
   if (response.success && response.data) {
     const cookieStore = await cookies()
 
     // Store tokens in HTTP-only cookies (more secure than localStorage)
     // API returns snake_case: access_token, refresh_token
     cookieStore.set("access_token", response.data.access_token, TOKEN_COOKIE_OPTIONS)
-    cookieStore.set("refresh_token", response.data.refresh_token, {
-      ...TOKEN_COOKIE_OPTIONS,
-      maxAge: 60 * 60 * 24 * 30, // 30 days for refresh token
-    })
 
+    if (response.refreshToken) {
+      cookieStore.set(
+        "refresh_token",
+        response.refreshToken,
+        TOKEN_COOKIE_OPTIONS
+      )
+    }
     // Return user data (without tokens - they're in cookies now)
     // PLUS: Automatically fetch profile to set user_type/name cookies
     try {
@@ -82,6 +84,7 @@ export async function loginAction(username: string, password: string) {
         })
       }
     } catch (profileErr) {
+      console.error("[loginAction] Failed to fetch profile after login:", profileErr)
     }
 
     return {

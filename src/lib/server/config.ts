@@ -14,12 +14,12 @@ export const SERVER_CONFIG = {
 // API Endpoints (same as before, but server-side only)
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: "/admin/login",
-    LOGOUT: "/auth/logout",
-    REFRESH: "/auth/refresh",
-    FORGOT_PASSWORD: "/auth/forgot-password",
-    RESET_PASSWORD: "/auth/reset-password",
-    ME: "/auth/me",
+    LOGIN: "/login",
+    LOGOUT: "/logout",
+    REFRESH: "/refresh",
+    FORGOT_PASSWORD: "/forgot-password",
+    RESET_PASSWORD: "/reset-password",
+    ME: "/me",
   },
   USERS: {
     BASE: "/users",
@@ -56,7 +56,7 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/work-cycles/${id}`,
   },
   PROFILE: {
-    ME: "/admin/profile",
+    ME: "/profile",
   },
   SITES: {
     BASE: "/site",

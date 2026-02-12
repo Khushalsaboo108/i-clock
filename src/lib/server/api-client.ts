@@ -3,13 +3,13 @@
  * This runs ONLY on the server - backend URL is never exposed to the browser
  */
 
-import { StarHalf } from "lucide-react"
 import { SERVER_CONFIG } from "./config"
 
 export interface ServerApiResponse<T = unknown> {
   success: boolean
   data: T
   message?: string
+  refreshToken?: string | null
   meta?: {
     page?: number
     limit?: number
@@ -152,7 +152,22 @@ export const serverApi = {
         return await handleError(response)
       }
 
-      return await response.json()
+      const data = await response.json()
+      const setCookie = response.headers.get("set-cookie")
+
+      let refreshToken: string | null = null
+
+      if (setCookie) {
+        const match = setCookie.match(/refresh_token=([^;]+)/)
+        if (match) {
+          refreshToken = match[1]
+        }
+      }
+
+      return {
+        ...data,
+        refreshToken,
+      }
     } catch (error) {
       return {
         success: false,

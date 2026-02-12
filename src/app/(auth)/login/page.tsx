@@ -35,7 +35,7 @@ import {
   User,
   AlertCircle,
 } from "lucide-react"
-import { loginAction, getProfileAction } from "@/lib/actions"
+import { loginAction } from "@/lib/actions"
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -77,11 +77,7 @@ function LoginForm() {
         setError(response.message || "Login failed. Please try again.")
       }
     } catch (err) {
-      console.error("FULL LOGIN ERROR DETAILS:", {
-        message: err instanceof Error ? err.message : String(err),
-        stack: err instanceof Error ? err.stack : undefined,
-        error: err
-      })
+      console.error("[LoginPage] Login error:", err instanceof Error ? err.message : err)
       setError("An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
