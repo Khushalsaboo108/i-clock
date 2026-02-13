@@ -15,6 +15,6 @@ export {
   type UserType,
 } from "./auth.actions"
 
-export { getSitesAction, getSiteByIdAction } from "./site.actions"
+export { getSitesAction, getSiteByIdAction, createSiteAction } from "./site.actions"
 export type { Site, SitesPagination, SitesApiResponse } from "./site.actions"
 
