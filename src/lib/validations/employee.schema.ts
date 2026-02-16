@@ -10,7 +10,11 @@ export const employeeFormSchema = z.object({
   employee_id: z.string().min(1, "Employee Number is required").max(50),
   first_name: z.string().min(1, "First Name is required").max(100),
   last_name: z.string().min(1, "Last Name is required").max(100),
-  username: z.string().optional(), // Added for concatenation
+  username: z.string()
+    .trim()
+    .min(3, "Username must be at least 3 characters")
+    .max(30, "Username must not exceed 30 characters")
+    .regex(/^[a-z0-9._-]+$/, "Only lowercase letters, numbers, and . _ - are allowed"),
   pin: z.string().min(1, "PIN is required").max(50),
   card_number: z.string().max(50).optional().default(""),
   employment_date: z.string().min(1, "Employment date is required"),
@@ -107,7 +111,7 @@ export const employeeFormSchema = z.object({
   vehicle_reg_no: z.string().max(20).optional().default(""),
   permanent_user: z.boolean().default(true),
   mobile: z.boolean().default(true),
-  password: z.string().max(50).optional().default(""),
+  password: z.string().min(6, "Password must be at least 6 characters").max(50).default(""),
   access_code_generator: z.enum(["Enable", "Disable"]).default("Disable"),
   access_group: z.coerce.number().int().min(0).optional().default(0),
   ignore_move_copy: z.boolean().default(false),
@@ -116,20 +120,23 @@ export const employeeFormSchema = z.object({
   alias_employee: z.string().max(50).optional().default(""),
   nif_dni: z.string().max(50).optional().default(""),
   work_center_id: z.coerce.number().int().min(0).default(0),
-}).transform((data) => ({
-  ...data,
-  name: `${data.first_name} ${data.last_name}`.trim().toUpperCase(), // Sync with 'name' field
-  username: data.username || `${data.first_name} ${data.last_name}`.trim(),
-  permanent_user: data.permanent_user ? 'Yes' : 'No', // Sync with legacy string boolean
-  mobile: data.mobile ? 'Yes' : 'No', // Sync with legacy string boolean
-  ignore_move_copy: data.ignore_move_copy ? 'No' : 'No', // Example says 'No'
-  is_antipass: 'No', // Default for legacy
-  visit_multi_times: 'No', // Default for legacy
-  priv: data.priv ? 1 : 0, // Sync with legacy 0/1
-  emp_type: '1', // Default for legacy
-  upgrade: 1, // Default for legacy
-  agri_card: 1, // Default for legacy
-}))
+}).transform((data) => {
+  const { first_name, last_name, ...rest } = data
+  return {
+    ...rest,
+    name: `${first_name} ${last_name}`.trim().toUpperCase(), // Sync with 'name' field
+    username: (rest.username || `${first_name}_${last_name}`).toLowerCase().trim().replace(/\s+/g, "_").replace(/[^a-z0-9._-]/g, ""),
+    permanent_user: rest.permanent_user ? 'Yes' : 'No', // Sync with legacy string boolean
+    mobile: rest.mobile ? 'Yes' : 'No', // Sync with legacy string boolean
+    ignore_move_copy: rest.ignore_move_copy ? 'No' : 'No', // Example says 'No'
+    is_antipass: 'No', // Default for legacy
+    visit_multi_times: 'No', // Default for legacy
+    priv: rest.priv ? 1 : 0, // Sync with legacy 0/1
+    emp_type: '1', // Default for legacy
+    upgrade: 1, // Default for legacy
+    agri_card: 1, // Default for legacy
+  }
+})
 
 export type EmployeeFormValues = z.input<typeof employeeFormSchema>
 export type CreateEmployeePayload = z.output<typeof employeeFormSchema>

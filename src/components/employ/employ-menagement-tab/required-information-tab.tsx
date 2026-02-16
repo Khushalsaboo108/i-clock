@@ -129,27 +129,40 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <Label htmlFor="username" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Username
+                Username <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="username"
                 {...register("username")}
-                className="h-10"
-                placeholder="Optional username"
+                className={`h-10 ${errors.username ? "border-red-500" : ""}`}
+                placeholder="username"
+                onKeyDown={(e) => {
+                  // Block spaces and any character that doesn't match the allowed set [a-z0-9._-]
+                  // Allow control keys (Backspace, Tab, Enter, Arrows)
+                  const allowedKeys = /^[a-z0-9._-]$/
+                  const isControlKey = ["Backspace", "Tab", "Enter", "ArrowLeft", "ArrowRight", "Delete"].includes(e.key)
+
+                  if (!isControlKey && !allowedKeys.test(e.key)) {
+                    e.preventDefault()
+                  }
+                }}
               />
-              <p className="text-xs text-muted-foreground mt-1 font-medium italic">Auto-generated if empty</p>
+              {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>}
+              <p className="text-xs text-muted-foreground mt-1 font-medium italic">Lowercase letters, numbers, ., _, - only. No spaces.</p>
             </div>
             <div>
               <Label htmlFor="password" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Password
+                Password <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="password"
                 type="password"
                 {...register("password")}
-                className="h-10"
+                className={`h-10 ${errors.password ? "border-red-500" : ""}`}
                 placeholder="••••••••"
               />
+              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+              <p className="text-xs text-muted-foreground mt-1 font-medium italic">Min 6 chars. Mix of letters, numbers & symbols recommended.</p>
             </div>
           </div>
 
