@@ -1,217 +1,187 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useFormContext } from "react-hook-form"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus, Edit, Trash2, AlertTriangle, CheckCircle2, XCircle, Upload } from "lucide-react"
-
-type Document = {
-  id: string
-  type: "medical" | "license" | "training"
-  title: string
-  checkDate: string
-  expiryDate: string
-  status: "valid" | "warning" | "expired"
-  notify: boolean
-  file?: string
-}
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { AlertTriangle, ShieldCheck, FileBadge, Bell } from "lucide-react"
+import type { EmployeeFormValues } from "@/lib/validations/employee.schema"
 
 export function DocumentsComplianceTab() {
-  const [documents] = useState<Document[]>([
-    {
-      id: "1",
-      type: "medical",
-      title: "Medical Record #1",
-      checkDate: "01/15/2024",
-      expiryDate: "01/15/2026",
-      status: "warning",
-      notify: true,
-    },
-    {
-      id: "2",
-      type: "medical",
-      title: "Medical Record #2",
-      checkDate: "06/20/2023",
-      expiryDate: "06/20/2025",
-      status: "valid",
-      notify: true,
-    },
-    {
-      id: "3",
-      type: "license",
-      title: "Driver's License",
-      checkDate: "03/10/2023",
-      expiryDate: "03/10/2028",
-      status: "valid",
-      notify: true,
-      file: "drivers-license.pdf",
-    },
-    {
-      id: "4",
-      type: "license",
-      title: "Professional Certification",
-      checkDate: "09/01/2021",
-      expiryDate: "09/01/2023",
-      status: "expired",
-      notify: false,
-      file: "certification.pdf",
-    },
-    {
-      id: "5",
-      type: "training",
-      title: "Safety Training",
-      checkDate: "11/15/2024",
-      expiryDate: "11/15/2025",
-      status: "valid",
-      notify: true,
-      file: "safety-training-cert.pdf",
-    },
-  ])
-
-  switch (status) {
-    case "valid":
-      return <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-500" />
-    case "warning":
-      return <AlertTriangle className="w-4 h-4 text-amber-500" />
-    case "expired":
-      return <XCircle className="w-4 h-4 text-red-600 dark:text-red-500" />
-  }
-
-  const getStatusBadge = (status: Document["status"]) => {
-    switch (status) {
-      case "valid":
-        return (
-          <Badge className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300">
-            <CheckCircle2 className="w-3 h-3 mr-1" />
-            Valid
-          </Badge>
-        )
-      case "warning":
-        return (
-          <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300">
-            <AlertTriangle className="w-3 h-3 mr-1" />
-            Expires in 2 months
-          </Badge>
-        )
-      case "expired":
-        return (
-          <Badge className="bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300">
-            <XCircle className="w-3 h-3 mr-1" />
-            Expired
-          </Badge>
-        )
-    }
-  }
-
-  const medicalDocs = documents.filter((d) => d.type === "medical")
-  const licenseDocs = documents.filter((d) => d.type === "license")
-  const trainingDocs = documents.filter((d) => d.type === "training")
-
-  const DocumentCard = ({ doc }: { doc: Document }) => (
-    <Card className="p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-3">
-        <h3 className="font-medium text-foreground">{doc.title}</h3>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="h-8 px-2">
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/10 dark:text-red-400">
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-      <div className="border-t border-border pt-3 space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Check Date:</span>
-          <span className="text-foreground">{doc.checkDate}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Expiry Date:</span>
-          <div className="flex items-center gap-2">
-            <span className="text-foreground">{doc.expiryDate}</span>
-            {getStatusBadge(doc.status)}
-          </div>
-        </div>
-        {doc.file && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Attachment:</span>
-            <Button variant="link" className="h-auto p-0 text-blue-600 text-sm">
-              {doc.file}
-            </Button>
-          </div>
-        )}
-        <div className="flex items-center space-x-2 pt-2">
-          <Checkbox id={`notify-${doc.id}`} defaultChecked={doc.notify} />
-          <Label htmlFor={`notify-${doc.id}`} className="text-sm font-normal cursor-pointer">
-            Notify user before expiry
-          </Label>
-        </div>
-      </div>
-    </Card>
-  )
+  const { register, watch, setValue } = useFormContext<EmployeeFormValues>()
 
   return (
     <div className="space-y-8">
       {/* Section 1: Medical Information */}
       <section className="border border-border rounded-lg p-6 bg-card">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2 mb-5 pb-3 border-b border-border">
+          <ShieldCheck className="w-5 h-5 text-green-600" />
           <h2 className="text-base font-semibold text-foreground">Medical Information</h2>
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Medical
-          </Button>
         </div>
-        <div className="space-y-4">
-          {medicalDocs.map((doc) => (
-            <DocumentCard key={doc.id} doc={doc} />
-          ))}
-        </div>
-      </section>
-
-      {/* Section 2: Licenses */}
-      <section className="border border-border rounded-lg p-6 bg-card">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-foreground">Licenses</h2>
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add License
-          </Button>
-        </div>
-        <div className="space-y-4">
-          {licenseDocs.map((doc) => (
-            <DocumentCard key={doc.id} doc={doc} />
-          ))}
-        </div>
-      </section>
-
-      {/* Section 3: Training Certificates */}
-      <section className="border border-border rounded-lg p-6 bg-card">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-foreground">Training Certificates</h2>
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Training
-          </Button>
-        </div>
-        <div className="space-y-4">
-          {trainingDocs.map((doc) => (
-            <DocumentCard key={doc.id} doc={doc} />
-          ))}
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="medical_check_date" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Last Check Date
+              </Label>
+              <Input id="medical_check_date" type="date" {...register("compliance_documents.medical.0.check_date")} className="h-10" />
+            </div>
+            <div>
+              <Label htmlFor="medical_expiry_date" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Expiry Date
+              </Label>
+              <Input id="medical_expiry_date" type="date" {...register("compliance_documents.medical.0.expiry_date")} className="h-10" />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="medical_limitations" className="text-sm font-medium text-muted-foreground mb-2 block">
+              Medical Limitations / Notes
+            </Label>
+            <Textarea
+              id="medical_limitations"
+              {...register("compliance_documents.medical.0.limitations")}
+              placeholder="List any medical restrictions..."
+              className="min-h-[80px]"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="medical_notify"
+              checked={watch("compliance_documents.medical.0.notify_user")}
+              onCheckedChange={(v) => setValue("compliance_documents.medical.0.notify_user", v === true)}
+            />
+            <Label htmlFor="medical_notify" className="text-sm font-normal cursor-pointer flex items-center gap-2">
+              <Bell className="w-3 h-3 text-muted-foreground" />
+              Notify user before medical expiry
+            </Label>
+          </div>
         </div>
       </section>
 
-      {/* Bulk Upload Section */}
+      {/* Section 2: Driver's License */}
       <section className="border border-border rounded-lg p-6 bg-card">
-        <h2 className="text-base font-semibold text-foreground mb-5">Bulk Document Upload</h2>
-        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors cursor-pointer">
-          <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm font-medium text-foreground mb-1">Click to upload or drag and drop</p>
-          <p className="text-xs text-muted-foreground">PDF, PNG, JPG up to 10MB each</p>
+        <div className="flex items-center gap-2 mb-5 pb-3 border-b border-border">
+          <FileBadge className="w-5 h-5 text-blue-600" />
+          <h2 className="text-base font-semibold text-foreground">Driver's License</h2>
+        </div>
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="license_code" className="text-sm font-medium text-muted-foreground mb-2 block">
+                License Code / Number
+              </Label>
+              <Input id="license_code" {...register("compliance_documents.drivers_license.code")} className="h-10" placeholder="e.g. CODE 14" />
+            </div>
+            <div>
+              <Label htmlFor="license_type" className="text-sm font-medium text-muted-foreground mb-2 block">
+                License Type
+              </Label>
+              <Select value={watch("compliance_documents.drivers_license.type")} onValueChange={(v) => setValue("compliance_documents.drivers_license.type", v)}>
+                <SelectTrigger id="license_type" className="h-10">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="light">Light Vehicle</SelectItem>
+                  <SelectItem value="heavy">Heavy Vehicle</SelectItem>
+                  <SelectItem value="motorcycle">Motorcycle</SelectItem>
+                  <SelectItem value="forklift">Forklift / Special</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="license_issued_date" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Issued Date
+              </Label>
+              <Input id="license_issued_date" type="date" {...register("compliance_documents.drivers_license.issued_date")} className="h-10" />
+            </div>
+            <div>
+              <Label htmlFor="license_expiry_date" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Expiry Date
+              </Label>
+              <Input id="license_expiry_date" type="date" {...register("compliance_documents.drivers_license.expiry_date")} className="h-10" />
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="license_notify"
+              checked={watch("compliance_documents.drivers_license.notify_user")}
+              onCheckedChange={(v) => setValue("compliance_documents.drivers_license.notify_user", v === true)}
+            />
+            <Label htmlFor="license_notify" className="text-sm font-normal cursor-pointer flex items-center gap-2">
+              <Bell className="w-3 h-3 text-muted-foreground" />
+              Notify user before license expiry
+            </Label>
+          </div>
         </div>
       </section>
+
+      {/* Section 3: Work Related Certificates */}
+      <section className="border border-border rounded-lg p-6 bg-card">
+        <div className="flex items-center gap-2 mb-5 pb-3 border-b border-border">
+          <ShieldCheck className="w-5 h-5 text-amber-600" />
+          <h2 className="text-base font-semibold text-foreground">Work Related Certificates</h2>
+        </div>
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="certificate_name" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Certificate Name
+              </Label>
+              <Input id="certificate_name" {...register("compliance_documents.certificates.0.name")} className="h-10" placeholder="e.g. Safety Training" />
+            </div>
+            <div>
+              <Label htmlFor="certificate_number" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Certificate Number
+              </Label>
+              <Input id="certificate_number" {...register("compliance_documents.certificates.0.number")} className="h-10" placeholder="CERT-12345" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="certificate_issued_date" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Issued Date
+              </Label>
+              <Input id="certificate_issued_date" type="date" {...register("compliance_documents.certificates.0.issued_date")} className="h-10" />
+            </div>
+            <div>
+              <Label htmlFor="certificate_reissue_date" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Re-Issue Date
+              </Label>
+              <Input id="certificate_reissue_date" type="date" {...register("compliance_documents.certificates.0.re_issue_date")} className="h-10" />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="certificate_description" className="text-sm font-medium text-muted-foreground mb-2 block">
+              Description
+            </Label>
+            <Input id="certificate_description" {...register("compliance_documents.certificates.0.description")} className="h-10" placeholder="Brief details about the training..." />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="certificate_notify"
+              checked={watch("compliance_documents.certificates.0.notify_user")}
+              onCheckedChange={(v) => setValue("compliance_documents.certificates.0.notify_user", v === true)}
+            />
+            <Label htmlFor="certificate_notify" className="text-sm font-normal cursor-pointer flex items-center gap-2">
+              <Bell className="w-3 h-3 text-muted-foreground" />
+              Notify user before re-issue date
+            </Label>
+          </div>
+        </div>
+      </section>
+
+      {/* Info Box */}
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex gap-3">
+        <AlertTriangle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+        <p className="text-sm text-blue-800 dark:text-blue-300">
+          <strong>Note:</strong> All documents uploaded here will be verified by the compliance officer.
+          Notifications will be sent to the employee 30 days prior to expiry.
+        </p>
+      </div>
     </div>
   )
 }

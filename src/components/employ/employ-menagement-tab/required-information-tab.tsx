@@ -1,128 +1,268 @@
 "use client"
 
-import { useState } from "react"
+import { useFormContext, useFieldArray } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Switch } from "@/components/ui/switch"
 import { Lock, Plus, X, Info, FileText } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-
-type Filter = {
-  id: string
-  label: string
-  value: string
-}
+import type { EmployeeFormValues } from "@/lib/validations/employee.schema"
 
 export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
-  const [filters, setFilters] = useState<Filter[]>([
-    { id: "1", label: "Department", value: "Engineering" },
-    { id: "2", label: "Location", value: "New York Office" },
-    { id: "3", label: "Shift Type", value: "Day Shift" },
-  ])
-  const [clockingMethod, setClockingMethod] = useState<"default" | "override">("override")
-  const [detectionMethod, setDetectionMethod] = useState<"saved" | "smart">("smart")
+  const { register, control, watch, setValue, formState: { errors } } = useFormContext<EmployeeFormValues>()
+
+  const { fields: filters, append, remove } = useFieldArray({
+    control,
+    name: "filters"
+  })
+
+  const clockingMethod = watch("clocking_config.method")
+  const isSaved = watch("clocking_config.saved_as_received")
+  const isSmart = watch("clocking_config.smart_detection.alternating_mode")
+  const detectionMethod = isSaved ? "saved" : "smart"
 
   const addFilter = () => {
-    const newFilter: Filter = {
-      id: Date.now().toString(),
-      label: `Filter ${filters.length + 1}`,
-      value: "",
-    }
-    setFilters([...filters, newFilter])
-  }
-
-  const removeFilter = (id: string) => {
-    setFilters(filters.filter((f) => f.id !== id))
+    append({ group: `Filter ${filters.length + 1}`, value: "" })
   }
 
   return (
     <div className="space-y-8">
       {/* Section 1: Company & Employee Identification */}
-      <section className="border border-gray-200 rounded-lg p-6 bg-white">
-        <h2 className="text-base font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">
+      <section className="border border-border rounded-lg p-6 bg-card">
+        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">
           Company & Employee Identification
         </h2>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="company-number" className="text-sm font-medium text-gray-700 mb-2 block">
-              Company Number <span className="text-red-500">*</span>
+            <Label htmlFor="site_id" className="text-sm font-medium text-muted-foreground mb-2 block">
+              Company ID <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
-              <Select defaultValue="001">
-                <SelectTrigger id="company-number" className="h-10">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="001">TechCorp (001)</SelectItem>
-                  <SelectItem value="002">TechCorp Ltd (002)</SelectItem>
-                </SelectContent>
-              </Select>
-              <Lock className="absolute right-10 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                id="site_id"
+                {...register("site_id")}
+                className="h-10 pr-10"
+                readOnly
+              />
+              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             </div>
-            <p className="text-xs text-gray-500 italic mt-1">Must confirm to edit</p>
+            <p className="text-xs text-muted-foreground italic mt-1 font-medium">Locked to current company</p>
           </div>
           <div>
-            <Label htmlFor="employee-number" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label htmlFor="employee_id" className="text-sm font-medium text-muted-foreground mb-2 block">
               Employee Number <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
               <Input
-                id="employee-number"
-                defaultValue={isNew ? "" : "EMP-12345"}
-                className="h-10 pr-10"
+                id="employee_id"
+                {...register("employee_id")}
+                className={`h-10 pr-10 ${errors.employee_id ? "border-red-500" : ""}`}
                 readOnly={!isNew}
                 placeholder={isNew ? "Enter Employee ID" : ""}
               />
-              {!isNew && <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />}
+              {!isNew && <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />}
             </div>
-            {!isNew && <p className="text-xs text-gray-500 italic mt-1">Must confirm to edit</p>}
+            {errors.employee_id && <p className="text-xs text-red-500 mt-1">{errors.employee_id.message}</p>}
+            {!isNew && <p className="text-xs text-muted-foreground italic mt-1">Must confirm to edit</p>}
           </div>
           <div>
-            <Label htmlFor="first-name" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label htmlFor="name" className="text-sm font-medium text-muted-foreground mb-2 block">
               First Name <span className="text-red-500">*</span>
             </Label>
-            <Input id="first-name" defaultValue={isNew ? "" : "John"} className="h-10" placeholder={isNew ? "First Name" : ""} />
-            {!isNew && <p className="text-xs text-gray-500 italic mt-1">Auto-filled</p>}
+            <Input
+              id="name"
+              {...register("first_name")}
+              className={`h-10 ${errors.first_name ? "border-red-500" : ""}`}
+              placeholder="First Name"
+            />
+            {errors.first_name && <p className="text-xs text-red-500 mt-1">{errors.first_name.message}</p>}
+            {!isNew && <p className="text-xs text-muted-foreground italic mt-1">Auto-filled</p>}
           </div>
           <div>
-            <Label htmlFor="last-name" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label htmlFor="surname" className="text-sm font-medium text-muted-foreground mb-2 block">
               Last Name <span className="text-red-500">*</span>
             </Label>
-            <Input id="last-name" defaultValue={isNew ? "" : "Smith"} className="h-10" placeholder={isNew ? "Last Name" : ""} />
-            {!isNew && <p className="text-xs text-gray-500 italic mt-1">Auto-filled</p>}
+            <Input
+              id="surname"
+              {...register("last_name")}
+              className={`h-10 ${errors.last_name ? "border-red-500" : ""}`}
+              placeholder="Last Name"
+            />
+            {errors.last_name && <p className="text-xs text-red-500 mt-1">{errors.last_name.message}</p>}
+            {!isNew && <p className="text-xs text-muted-foreground italic mt-1">Auto-filled</p>}
+          </div>
+          <div>
+            <Label htmlFor="pin" className="text-sm font-medium text-muted-foreground mb-2 block">
+              PIN <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="pin"
+              {...register("pin")}
+              className={`h-10 ${errors.pin ? "border-red-500" : ""}`}
+              placeholder="System PIN"
+            />
+            {errors.pin && <p className="text-xs text-red-500 mt-1">{errors.pin.message}</p>}
+          </div>
+          <div>
+            <Label htmlFor="card" className="text-sm font-medium text-muted-foreground mb-2 block">
+              Card Number
+            </Label>
+            <Input
+              id="card"
+              {...register("card_number")}
+              className="h-10"
+              placeholder="Card ID (optional)"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Section: Access & Permissions */}
+      <section className="border border-border rounded-lg p-6 bg-card">
+        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">
+          Access & Permissions
+        </h2>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="username" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Username
+              </Label>
+              <Input
+                id="username"
+                {...register("username")}
+                className="h-10"
+                placeholder="Optional username"
+              />
+              <p className="text-xs text-muted-foreground mt-1 font-medium italic">Auto-generated if empty</p>
+            </div>
+            <div>
+              <Label htmlFor="password" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                {...register("password")}
+                className="h-10"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-6 pt-2">
+            <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm bg-muted/20">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">Permanent User</Label>
+                <p className="text-[11px] text-muted-foreground">Permanent employee?</p>
+              </div>
+              <Switch
+                checked={watch("permanent_user")}
+                onCheckedChange={(val) => setValue("permanent_user", val)}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm bg-muted/20">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">Mobile Access</Label>
+                <p className="text-[11px] text-muted-foreground">Allow mobile app?</p>
+              </div>
+              <Switch
+                checked={watch("mobile")}
+                onCheckedChange={(val) => setValue("mobile", val)}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm bg-muted/20">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">Privileged</Label>
+                <p className="text-[11px] text-muted-foreground">Admin privileges?</p>
+              </div>
+              <Switch
+                checked={watch("priv")}
+                onCheckedChange={(val) => setValue("priv", val)}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section: Categorization */}
+      <section className="border border-border rounded-lg p-6 bg-card">
+        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">
+          Categorization
+        </h2>
+        <div className="grid grid-cols-3 gap-6">
+          <div>
+            <Label htmlFor="category_id" className="text-sm font-medium text-muted-foreground mb-2 block">
+              Category ID
+            </Label>
+            <Input
+              id="category_id"
+              type="number"
+              {...register("category_id")}
+              className="h-10"
+            />
+          </div>
+          <div>
+            <Label htmlFor="sbu_category_id" className="text-sm font-medium text-muted-foreground mb-2 block">
+              SBU Category ID
+            </Label>
+            <Input
+              id="sbu_category_id"
+              type="number"
+              {...register("sbu_category_id")}
+              className="h-10"
+            />
+          </div>
+          <div>
+            <Label htmlFor="work_center_id" className="text-sm font-medium text-muted-foreground mb-2 block">
+              Work Center ID
+            </Label>
+            <Input
+              id="work_center_id"
+              type="number"
+              {...register("work_center_id")}
+              className="h-10"
+            />
           </div>
         </div>
       </section>
 
       {/* Section 2: Employee Filters */}
-      <section className="border border-gray-200 rounded-lg p-6 bg-white">
-        <h2 className="text-base font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">Employee Filters</h2>
+      <section className="border border-border rounded-lg p-6 bg-card">
+        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">Employee Filters</h2>
         <div className="space-y-4">
-          {filters.map((filter, index) => (
-            <div key={filter.id} className="flex items-center gap-4">
+          {filters.map((field, index) => (
+            <div key={field.id} className="flex items-center gap-4">
               <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Filter {index + 1}: {filter.label}
+                <Label className="text-sm font-medium text-muted-foreground mb-2 block">
+                  {field.group}
                   {index === 0 && <span className="text-red-500 ml-1">*</span>}
                 </Label>
-                <Select defaultValue={filter.value}>
+                <Select
+                  value={watch(`filters.${index}.value`)}
+                  onValueChange={(val) => setValue(`filters.${index}.value`, val)}
+                >
                   <SelectTrigger className="h-10">
-                    <SelectValue />
+                    <SelectValue placeholder={`Select ${field.group}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={filter.value}>{filter.value}</SelectItem>
+                    <SelectItem value="engineering">Engineering</SelectItem>
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                    <SelectItem value="operations">Operations</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               {index > 0 && (
                 <Button
+                  type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeFilter(filter.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 mt-7"
+                  onClick={() => remove(index)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-500/10 mt-7"
                 >
                   <X className="w-4 h-4 mr-1" />
                   Remove
@@ -130,7 +270,7 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
               )}
             </div>
           ))}
-          <Button variant="link" onClick={addFilter} className="text-blue-600 hover:text-blue-700 p-0 h-auto">
+          <Button type="button" variant="link" onClick={addFilter} className="text-blue-600 hover:text-blue-500 p-0 h-auto">
             <Plus className="w-4 h-4 mr-1" />
             Add Filter
           </Button>
@@ -138,35 +278,51 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
       </section>
 
       {/* Section 3: Work Configuration */}
-      <section className="border border-gray-200 rounded-lg p-6 bg-white">
-        <h2 className="text-base font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">Work Configuration</h2>
+      <section className="border border-border rounded-lg p-6 bg-card">
+        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">Work Configuration</h2>
         <div className="space-y-5">
           <div>
-            <Label htmlFor="work-rules" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label htmlFor="work_rules_id" className="text-sm font-medium text-muted-foreground mb-2 block">
               Work Rules <span className="text-red-500">*</span>
             </Label>
             <div className="flex items-center gap-3">
-              <Select defaultValue="standard">
-                <SelectTrigger id="work-rules" className="h-10 flex-1">
+              <Select
+                value={watch("work_rules_id")}
+                onValueChange={(val) => setValue("work_rules_id", val)}
+              >
+                <SelectTrigger id="work_rules_id" className="h-10 flex-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="standard">Standard 40hr Week</SelectItem>
                   <SelectItem value="flexible">Flexible Hours</SelectItem>
                   <SelectItem value="shift">Shift Work</SelectItem>
+                  <SelectItem value="admin">Admin Special</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="h-10 bg-transparent">
-                <FileText className="w-4 h-4 mr-2" />
-                View Rules
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button type="button" variant="outline" size="sm" className="h-10 bg-blue-500/10 border-blue-500/20 text-blue-600 hover:bg-blue-500/20">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Quick Guide
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Admin Staff: Shortcut to guide for rules and shifts used by this group.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            <p className="text-xs text-gray-500 mt-1">Quick access to assigned rules and shifts</p>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">Quick access to assigned rules and shifts</p>
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-gray-700 mb-3 block">Clocking Method</Label>
-            <RadioGroup value={clockingMethod} onValueChange={(v) => setClockingMethod(v as any)}>
+            <Label className="text-sm font-medium text-muted-foreground mb-3 block">Clocking Method</Label>
+            <RadioGroup
+              value={clockingMethod}
+              onValueChange={(v) => setValue("clocking_config.method", v as any)}
+            >
               <div className="flex items-center space-x-2 mb-3">
                 <RadioGroupItem value="default" id="default-method" />
                 <Label htmlFor="default-method" className="font-normal cursor-pointer">
@@ -181,7 +337,11 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
                   </Label>
                 </div>
                 <div className="ml-6">
-                  <Select defaultValue="smart" disabled={clockingMethod === "default"}>
+                  <Select
+                    value={watch("clocking_config.override_type")}
+                    onValueChange={(v) => setValue("clocking_config.override_type", v as any)}
+                    disabled={clockingMethod === "default"}
+                  >
                     <SelectTrigger className="h-10">
                       <SelectValue />
                     </SelectTrigger>
@@ -199,83 +359,105 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
       </section>
 
       {/* Section 4: Clocking Detection Settings */}
-      <section className="border border-gray-200 rounded-lg p-6 bg-white">
-        <h2 className="text-base font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">
+      <section className="border border-border rounded-lg p-6 bg-card">
+        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">
           Clocking Detection Settings
         </h2>
         <div>
-          <Label className="text-sm font-medium text-gray-700 mb-3 block">
-            Clocking Method <span className="text-red-500">*</span>
+          <Label className="text-sm font-medium text-muted-foreground mb-3 block">
+            Directional Clocking <span className="text-red-500">*</span>
           </Label>
-          <RadioGroup value={detectionMethod} onValueChange={(v) => setDetectionMethod(v as any)}>
+          <RadioGroup
+            value={detectionMethod}
+            onValueChange={(v) => {
+              if (v === "saved") {
+                setValue("clocking_config.saved_as_received", true)
+                setValue("clocking_config.smart_detection.alternating_mode", false)
+              } else {
+                setValue("clocking_config.saved_as_received", false)
+                setValue("clocking_config.smart_detection.alternating_mode", true)
+              }
+            }}
+          >
             <div className="space-y-4">
               {/* Option 1 */}
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="bg-muted/30 rounded-lg p-4 border border-border">
                 <div className="flex items-start gap-2">
                   <RadioGroupItem value="saved" id="saved-method" className="mt-0.5" />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="saved-method" className="font-normal cursor-pointer">
-                        Clocking Saved as Received
+                      <Label htmlFor="saved-method" className="font-semibold cursor-pointer">
+                        Clocking Saved as Received by Reader
                       </Label>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                            <Info className="w-4 h-4 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="max-w-xs">System records IN/OUT exactly as sent by the time clock reader</p>
+                            <p className="max-w-xs">If reader sends an IN, it MUST be recorded as an IN regardless of previous state.</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                    <p className="text-[13px] text-gray-600 mt-1">System records IN/OUT exactly as sent by reader</p>
+                    <p className="text-[13px] text-muted-foreground mt-1">Status (IN/OUT) is preserved from the hardware device.</p>
                   </div>
                 </div>
               </div>
 
               {/* Option 2 */}
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="bg-muted/30 rounded-lg p-4 border border-border">
                 <div className="flex items-start gap-2">
                   <RadioGroupItem value="smart" id="smart-method" className="mt-0.5" />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="smart-method" className="font-normal cursor-pointer">
-                        Smart Clock Detection
+                      <Label htmlFor="smart-method" className="font-semibold cursor-pointer">
+                        Alternating Detection (Toggling)
                       </Label>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                            <Info className="w-4 h-4 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="max-w-xs">Automatically alternates between IN and OUT based on timing</p>
+                            <p className="max-w-xs">First clock of day = IN. Automatically alternates OUT, IN, OUT...</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                    <p className="text-[13px] text-gray-600 mt-1 mb-4">
-                      {"First clock = IN, then alternates OUT, IN, OUT..."}
+                    <p className="text-[13px] text-muted-foreground mt-1 mb-4">
+                      {"Force first clock as IN, then toggle status for each subsequent read."}
                     </p>
 
                     {detectionMethod === "smart" && (
-                      <div className="ml-6 mt-3">
-                        <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                          New Shift Detection Time Gap:
+                      <div className="ml-6 mt-3 p-4 bg-card rounded border border-border shadow-sm">
+                        <Label className="text-sm font-medium text-muted-foreground mb-3 block">
+                          New Shift Consider Timing:
                         </Label>
-                        <div className="flex items-center gap-2">
-                          <Input type="number" defaultValue="4" className="w-[70px] h-10 text-center" min="0" />
-                          <span className="text-sm text-gray-700">hours</span>
-                          <Input
-                            type="number"
-                            defaultValue="0"
-                            className="w-[70px] h-10 text-center"
-                            min="0"
-                            max="59"
-                          />
-                          <span className="text-sm text-gray-700">minutes</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              {...register("clocking_config.smart_detection.new_shift_threshold.hours")}
+                              className="w-[70px] h-10 text-center"
+                              min="0"
+                            />
+                            <span className="text-sm text-muted-foreground">hrs</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              {...register("clocking_config.smart_detection.new_shift_threshold.minutes")}
+                              className="w-[70px] h-10 text-center"
+                              min="0"
+                              max="59"
+                            />
+                            <span className="text-sm text-muted-foreground">mins</span>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Time before next clock is considered a new shift</p>
+                        <p className="text-xs text-muted-foreground mt-2 italic">
+                          Wait time after which the next clocking is seen as a new shift (Reset to IN).
+                        </p>
                       </div>
                     )}
                   </div>
@@ -287,37 +469,53 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
       </section>
 
       {/* Section 5: Additional Required Information */}
-      <section className="border border-gray-200 rounded-lg p-6 bg-white">
-        <h2 className="text-base font-semibold text-gray-900 mb-5 pb-3 border-b border-gray-100">
+      <section className="border border-border rounded-lg p-6 bg-card">
+        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">
           Additional Required Information
         </h2>
         <div className="grid grid-cols-3 gap-6">
           <div>
-            <Label htmlFor="holiday-calendar" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label htmlFor="holiday_calendar_id" className="text-sm font-medium text-muted-foreground mb-2 block">
               Public Holiday Calendar <span className="text-red-500">*</span>
             </Label>
-            <Select defaultValue="standard">
-              <SelectTrigger id="holiday-calendar" className="h-10">
+            <Select
+              value={watch("public_holiday_calendar_id")}
+              onValueChange={(val) => setValue("public_holiday_calendar_id", val)}
+            >
+              <SelectTrigger id="holiday_calendar_id" className="h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="standard">Standard Calendar</SelectItem>
                 <SelectItem value="us">US Federal</SelectItem>
                 <SelectItem value="uk">UK Bank Holidays</SelectItem>
+                <SelectItem value="sa">South Africa Public</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="employment-date" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label htmlFor="employment_date" className="text-sm font-medium text-muted-foreground mb-2 block">
               Employment Date <span className="text-red-500">*</span>
             </Label>
-            <Input id="employment-date" type="date" defaultValue="2020-01-15" className="h-10" />
+            <Input
+              id="employment_date"
+              type="date"
+              {...register("employment_date")}
+              className={`h-10 ${errors.employment_date ? "border-red-500" : ""}`}
+            />
+            {errors.employment_date && <p className="text-xs text-red-500 mt-1">{errors.employment_date.message}</p>}
           </div>
           <div>
-            <Label htmlFor="reader-pin" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label htmlFor="reader_pin" className="text-sm font-medium text-muted-foreground mb-2 block">
               Reader PIN <span className="text-red-500">*</span>
             </Label>
-            <Input id="reader-pin" type="password" defaultValue="1234" className="h-10" />
+            <Input
+              id="reader_pin"
+              type="password"
+              {...register("reader_pin")}
+              className="h-10"
+              placeholder="Hardware PIN"
+            />
           </div>
         </div>
       </section>

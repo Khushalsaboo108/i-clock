@@ -1,0 +1,99 @@
+{
+  "site_id": 5,
+  "employee_code": "EMP-3839",
+  "first_name": "John",
+  "last_name": "Smith",
+  "pin": "1234",
+  "card_number": "987654321",
+  "employment_date": "2020-01-15",
+  "public_holiday_calendar_id": "standard",
+  "work_rules_id": "rule_admin_01",
+  "filters": [
+    {
+      "group": "Department",
+      "value": "Engineering"
+    },
+    {
+      "group": "Location",
+      "value": "Primary"
+    }
+  ],
+  "clocking_config": {
+    "method": "override",
+    "override_type": "smart_detection",
+    "directional_clocking": true,
+    "saved_as_received": false,
+    "smart_detection": {
+      "first_clock_is_in": true,
+      "alternating_mode": true,
+      "new_shift_threshold": {
+        "hours": 4,
+        "minutes": 0
+      }
+    }
+  },
+  "personal_details": {
+    "photo_url": "base64_data_or_url",
+    "photo_size_kb": 45,
+    "dob": "1990-05-20",
+    "sex": "M",
+    "marital_status": "Married",
+    "id_number": "123-456-789",
+    "contact_number": "+27 12 345 6789",
+    "address": {
+      "city": "Durban",
+      "suburb": "Beachfront",
+      "postal_code": "4001",
+      "street": "123 Street Name..."
+    },
+    "emergency_contact": {
+      "person": "Jane Smith",
+      "number": "+27 12 987 6543",
+      "relationship": "Spouse"
+    },
+    "banking": {
+      "bank_name": "Standard Bank",
+      "account_number": "1234567890",
+      "account_type": "Current",
+      "routing_code": "001"
+    },
+    "notes": "Prefer early shifts."
+  },
+  "compliance_documents": {
+    "medical": [
+      {
+        "check_date": "2024-01-01",
+        "expiry_date": "2025-01-01",
+        "limitations": "None",
+        "notify_user": true
+      }
+    ],
+    "drivers_license": {
+      "code": "CODE_14",
+      "number": "DL-12345",
+      "type": "Heavy Vehicle",
+      "issued_date": "2015-06-12",
+      "expiry_date": "2025-06-12",
+      "notify_user": true
+    },
+    "certificates": [
+      {
+        "name": "Safety First Aid",
+        "number": "CERT-882",
+        "issued_date": "2023-10-10",
+        "re_issue_date": "2025-10-10",
+        "description": "Basic First Aid Training",
+        "notify_user": true
+      }
+    ]
+  },
+  "disciplinary_records": [
+    {
+      "offense_type": "Late Coming",
+      "notes": "Arrived 15 mins late 3 times in a week.",
+      "effective_until": "2024-12-31",
+      "times_reported": 3,
+      "status": "Active"
+    }
+  ]
+}

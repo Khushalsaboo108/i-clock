@@ -20,17 +20,28 @@ export interface Site {
   name: string
   contact: string
   notes: string
-  auto_remove_emp: string
+  auto_remove_emp: boolean
   site_password: string | null
-  agrigistics_site: string
-  pull_employees: string
-  send_attendance: string
-  easyroster: string
+  agrigistics_site: boolean
+  pull_employees: boolean
+  send_attendance: boolean
+  easyroster: boolean
   easyroster_token: string | null
-  eduman: string
-  send_agrigistics_gps: string
+  eduman: boolean
+  send_agrigistics_gps: boolean
   employee_count: number
   department_count: number
+  // Extended fields from /site/{id} detail response
+  id?: number
+  license_validity?: string
+  data_format?: string
+  data_format_other?: string
+  license_key?: string
+  server_ip?: string
+  server_port?: number
+  swver?: string
+  status?: string
+  access_user?: boolean
 }
 
 export interface SitesPagination {
@@ -102,7 +113,7 @@ export async function getSiteByIdAction(id: string | number) {
 
 /**
  * Create a new site/company
- * Transforms form values (booleans) to API format ("Yes"/"No")
+ * Uses native booleans for toggle fields
  */
 export async function createSiteAction(formData: SiteFormValues) {
   const cookieStore = await cookies()
@@ -116,7 +127,7 @@ export async function createSiteAction(formData: SiteFormValues) {
     }
   }
 
-  // Transform form booleans → "Yes"/"No" via the shared schema
+  // Use the shared schema for validation
   const parseResult = createSitePayloadSchema.safeParse(formData)
 
   if (!parseResult.success) {

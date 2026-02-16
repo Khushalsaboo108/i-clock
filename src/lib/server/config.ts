@@ -58,6 +58,10 @@ export const API_ENDPOINTS = {
   PROFILE: {
     ME: "/profile",
   },
+  EMPLOYEE: {
+    BASE: "/employee",
+    BY_SITE: (siteId: string) => `/employee/${siteId}`,
+  },
   SITES: {
     BASE: "/site",
     BY_ID: (id: string) => `/site/${id}`,

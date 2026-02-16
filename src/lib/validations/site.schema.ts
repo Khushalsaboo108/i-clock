@@ -52,33 +52,11 @@ export const siteFormSchema = z.object({
 export type SiteFormValues = z.infer<typeof siteFormSchema>
 
 // ---------------------------------------------------------------------------
-// API Payload Schema (transforms booleans → "Yes" | "No")
+// API Payload Schema (passes booleans directly)
 // ---------------------------------------------------------------------------
 
-/** Helper: converts a boolean to "Yes" | "No" */
-const boolToYesNo = (val: boolean): "Yes" | "No" => (val ? "Yes" : "No")
+/** Schema that validates the API payload format */
+export const createSitePayloadSchema = siteFormSchema
 
-/** Schema that transforms form values into the API payload format */
-export const createSitePayloadSchema = siteFormSchema.transform((data) => ({
-  name: data.name,
-  site_code: data.site_code,
-  contact: data.contact,
-  site_password: data.site_password,
-
-  agrigistics_site: boolToYesNo(data.agrigistics_site),
-  send_agrigistics_gps: boolToYesNo(data.send_agrigistics_gps),
-  pull_employees: boolToYesNo(data.pull_employees),
-  send_attendance: boolToYesNo(data.send_attendance),
-  easyroster: boolToYesNo(data.easyroster),
-  eduman: boolToYesNo(data.eduman),
-  auto_remove_emp: boolToYesNo(data.auto_remove_emp),
-  access_user: boolToYesNo(data.access_user),
-
-  easyroster_token: data.easyroster_token,
-  data_format: data.data_format,
-  data_format_other: data.data_format_other,
-  server_ip: data.server_ip,
-}))
-
-/** Type for the API payload (after transform) */
-export type CreateSitePayload = z.output<typeof createSitePayloadSchema>
+/** Type for the API payload */
+export type CreateSitePayload = z.infer<typeof createSitePayloadSchema>

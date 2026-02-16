@@ -21,31 +21,6 @@ const navItems: NavItem[] = [
     title: "Home",
     route: "/",
   },
-  {
-    icon: CalendarCheck2,
-    title: "Public Holidays",
-    route: "/public-holidays",
-  },
-  {
-    icon: Clock,
-    title: "Clockings",
-    route: "/clockings",
-  },
-  {
-    icon: CalendarOff,
-    title: "Absent Codes",
-    route: "/absent-codes",
-  },
-  {
-    icon: Settings2,
-    title: "Shifts",
-    route: "/shifts",
-  },
-  {
-    icon: Repeat,
-    title: "Work Cycles",
-    route: "/work-cycles",
-  },
 ]
 
 export default function CommonHeader() {
@@ -94,7 +69,7 @@ export default function CommonHeader() {
             {/* Mobile Menu */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" className="flex-shrink-0">
+                <Button variant="ghost" size="icon" className="shrink-0">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
@@ -151,7 +126,7 @@ export default function CommonHeader() {
           </div>
 
           {/* Right: Time, Greeting (Desktop), Mode */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             {/* Desktop Time & Greeting */}
             {date && (
               <div className="hidden md:flex flex-col items-end">

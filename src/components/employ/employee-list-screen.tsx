@@ -1,100 +1,132 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Plus, Search, ChevronRight, Users } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ArrowLeft, Plus, Search, ChevronRight, ChevronLeft, Users, Loader2 } from "lucide-react"
+import { getEmployeesAction, getSiteByIdAction, type Employee, type Site } from "@/lib/actions"
 
-interface Employee {
-  id: string
-  name: string
-  employeeId: string
-  department: string
-  position: string
-  email: string
-  status: "active" | "inactive" | "on-leave"
+interface Pagination {
+  total: number
+  page: number
+  limit: number
 }
 
-const mockEmployees: Employee[] = [
-  {
-    id: "emp-001",
-    name: "John Smith",
-    employeeId: "EMP001",
-    department: "Engineering",
-    position: "Senior Developer",
-    email: "john.smith@company.com",
-    status: "active",
-  },
-  {
-    id: "emp-002",
-    name: "Sarah Johnson",
-    employeeId: "EMP002",
-    department: "HR",
-    position: "HR Manager",
-    email: "sarah.johnson@company.com",
-    status: "active",
-  },
-  {
-    id: "emp-003",
-    name: "Michael Brown",
-    employeeId: "EMP003",
-    department: "Sales",
-    position: "Sales Executive",
-    email: "michael.brown@company.com",
-    status: "on-leave",
-  },
-  {
-    id: "emp-004",
-    name: "Emily Davis",
-    employeeId: "EMP004",
-    department: "Engineering",
-    position: "Junior Developer",
-    email: "emily.davis@company.com",
-    status: "active",
-  },
-  {
-    id: "emp-005",
-    name: "Robert Wilson",
-    employeeId: "EMP005",
-    department: "Finance",
-    position: "Finance Analyst",
-    email: "robert.wilson@company.com",
-    status: "inactive",
-  },
-  {
-    id: "emp-006",
-    name: "Lisa Anderson",
-    employeeId: "EMP006",
-    department: "Marketing",
-    position: "Marketing Manager",
-    email: "lisa.anderson@company.com",
-    status: "active",
-  },
-]
+const statusColors: Record<string, string> = {
+  Active: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  Inactive: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400",
+  Disabled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+}
 
-const statusColors = {
-  active: "bg-green-100 text-green-800",
-  "on-leave": "bg-amber-100 text-amber-800",
-  inactive: "bg-gray-100 text-gray-800",
+function EmployeeListSkeleton() {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="border-border bg-card sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-4 mb-2">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="pt-6">
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-8 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
 }
 
 export function EmployeeListScreen({ companyId }: { companyId: string }) {
   const router = useRouter()
-  const [employees] = useState<Employee[]>(mockEmployees)
+  const searchParams = useSearchParams()
+
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [siteData, setSiteData] = useState<Site | null>(null)
+  const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 10 })
+  const [isLoading, setIsLoading] = useState(false)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
 
-  const filteredEmployees = employees.filter(
-    (emp) =>
-      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  const currentPage = parseInt(searchParams.get("page") || "1", 10)
+  const limit = parseInt(searchParams.get("limit") || "10", 10)
 
-  const handleEmployeeClick = (employeeId: string) => {
+  // Fetch site details (called once)
+  useEffect(() => {
+    async function fetchSiteDetails() {
+      const response = await getSiteByIdAction(companyId)
+      if (response.success && response.data) {
+        setSiteData(response.data)
+      }
+    }
+    fetchSiteDetails()
+  }, [companyId])
+
+  // Fetch employees
+  const fetchEmployees = useCallback(async (page: number, limit: number) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await getEmployeesAction(companyId, { page, limit })
+
+      if (response.success && response.data) {
+        const employeesData = Array.isArray(response.data) ? response.data : []
+        setEmployees(employeesData)
+
+        // Get pagination from response
+        const paginationData = (response as { pagination?: Pagination }).pagination
+        if (paginationData) {
+          setPagination(paginationData)
+        } else {
+          setPagination({ total: employeesData.length, page, limit })
+        }
+      } else {
+        setError(response.message || "Failed to fetch employees")
+      }
+    } catch (err) {
+      setError("An unexpected error occurred")
+      console.error("Error fetching employees:", err)
+    } finally {
+      setIsLoading(false)
+      setIsInitialLoad(false)
+    }
+  }, [companyId])
+
+  useEffect(() => {
+    fetchEmployees(currentPage, limit)
+  }, [currentPage, limit, fetchEmployees])
+
+  const handleEmployeeClick = (employeeId: number) => {
     router.push(`/company/${companyId}/employees/${employeeId}`)
   }
 
@@ -102,37 +134,85 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
     router.push("/")
   }
 
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("page", newPage.toString())
+    params.set("limit", limit.toString())
+    router.push(`/company/${companyId}/employees?${params.toString()}`, { scroll: false })
+  }
+
+  const totalPages = Math.ceil(pagination.total / pagination.limit)
+
+  // Client-side search filtering
+  const filteredEmployees = employees.filter(
+    (emp) =>
+      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.pin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (emp.employee_code && emp.employee_code.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase())),
+  )
+
+  // Counts
+  const activeCount = employees.filter((e) => e.status === "Active").length
+  const inactiveCount = employees.filter((e) => e.status !== "Active").length
+
+  if (isInitialLoad) {
+    return <EmployeeListSkeleton />
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Loading overlay for pagination */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-background/90 border shadow-lg rounded-xl px-6 py-4 flex items-center gap-3 pointer-events-auto">
+            <Loader2 className="w-5 h-5 animate-spin text-primary" />
+            <span className="text-sm font-medium text-foreground">Loading employees...</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <div className=" border-border bg-card sticky top-0 z-50">
+      <div className="border-border bg-card sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4 mb-2">
             <Button variant="ghost" size="icon" onClick={handleBackClick} className="rounded-full">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Employees</h1>
+              <h1 className="text-2xl font-bold text-foreground">
+                {siteData?.name || "Employees"}
+              </h1>
               <p className="text-sm text-muted-foreground">
-                Company ID: {companyId} • {filteredEmployees.length} total
+                {siteData?.site_code ? `${siteData.site_code} • ` : ""}
+                {pagination.total} employee{pagination.total !== 1 ? "s" : ""} total
               </p>
             </div>
           </div>
-
-          {/* Search Bar */}
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Error State */}
+        {error && !isLoading && employees.length === 0 && (
+          <Card className="p-12 text-center mb-8">
+            <h3 className="text-lg font-medium text-destructive">Error</h3>
+            <p className="text-muted-foreground mt-2">{error}</p>
+            <Button className="mt-4" onClick={() => fetchEmployees(currentPage, limit)}>
+              Try Again
+            </Button>
+          </Card>
+        )}
+
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Employees</p>
-                  <p className="text-3xl font-bold text-foreground mt-2">{employees.length}</p>
+                  <p className="text-3xl font-bold text-foreground mt-2">{pagination.total}</p>
                 </div>
                 <Users className="w-8 h-8 text-primary/20" />
               </div>
@@ -142,19 +222,7 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
             <CardContent className="pt-6">
               <div>
                 <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">
-                  {employees.filter((e) => e.status === "active").length}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div>
-                <p className="text-sm text-muted-foreground">On Leave</p>
-                <p className="text-3xl font-bold text-amber-600 mt-2">
-                  {employees.filter((e) => e.status === "on-leave").length}
-                </p>
+                <p className="text-3xl font-bold text-green-600 mt-2">{activeCount}</p>
               </div>
             </CardContent>
           </Card>
@@ -162,26 +230,26 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
             <CardContent className="pt-6">
               <div>
                 <p className="text-sm text-muted-foreground">Inactive</p>
-                <p className="text-3xl font-bold text-gray-600 mt-2">
-                  {employees.filter((e) => e.status === "inactive").length}
-                </p>
+                <p className="text-3xl font-bold text-gray-600 mt-2">{inactiveCount}</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Employees Table */}
+        {/* Search */}
         <div className="pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name, employee ID, or email..."
+              placeholder="Search by name, PIN, employee code, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
         </div>
+
+        {/* Employees Table */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle>Employee Directory</CardTitle>
@@ -196,10 +264,9 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead>Name</TableHead>
-                    <TableHead>Employee ID</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Position</TableHead>
-                    <TableHead>Email</TableHead>
+                    <TableHead>PIN</TableHead>
+                    <TableHead>Employee Code</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>
@@ -208,18 +275,21 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
                   {filteredEmployees.length > 0 ? (
                     filteredEmployees.map((employee) => (
                       <TableRow
-                        key={employee.id}
+                        key={employee.employee_id}
                         className="cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => handleEmployeeClick(employee.id)}
+                        onClick={() => handleEmployeeClick(employee.employee_id)}
                       >
                         <TableCell className="font-medium text-foreground">{employee.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{employee.employeeId}</TableCell>
-                        <TableCell>{employee.department}</TableCell>
-                        <TableCell className="text-muted-foreground">{employee.position}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{employee.email}</TableCell>
+                        <TableCell className="text-muted-foreground font-mono">{employee.pin}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {employee.employee_code || "—"}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {employee.phone || "—"}
+                        </TableCell>
                         <TableCell>
-                          <Badge className={statusColors[employee.status]}>
-                            {employee.status.charAt(0).toUpperCase() + employee.status.slice(1)}
+                          <Badge className={statusColors[employee.status] || statusColors["Inactive"]}>
+                            {employee.status}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -228,7 +298,7 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
                             size="icon"
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleEmployeeClick(employee.id)
+                              handleEmployeeClick(employee.employee_id)
                             }}
                             className="rounded-full"
                           >
@@ -239,14 +309,74 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No employees found matching your search
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        {searchTerm
+                          ? "No employees found matching your search"
+                          : "No employees found for this company"}
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6">
+                <p className="text-sm text-muted-foreground">
+                  Page {pagination.page} of {totalPages} • {pagination.total} total employees
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1 || isLoading}
+                    className="gap-1"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+
+                  {/* Page numbers */}
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let pageNum: number
+                    if (totalPages <= 5) {
+                      pageNum = i + 1
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i
+                    } else {
+                      pageNum = currentPage - 2 + i
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                        disabled={isLoading}
+                        className="min-w-[36px]"
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  })}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages || isLoading}
+                    className="gap-1"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

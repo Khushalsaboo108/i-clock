@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Building2, ChevronRight, Plus, ChevronLeft, Loader2, Users, Layers, Hash } from "lucide-react"
 import { getSitesAction, type Site } from "@/lib/actions"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CreateSiteDialog } from "./create-site-dialog"
+
 
 interface Pagination {
   total: number
@@ -136,8 +136,8 @@ export function CompanySelectionScreen() {
 
   const totalPages = Math.ceil(pagination.total / pagination.limit)
 
-  const handleSiteCreated = () => {
-    fetchSites(currentPage, limit)
+  const handleAddCompany = () => {
+    router.push("/company/new")
   }
 
   // Show skeleton on initial page load
@@ -194,7 +194,10 @@ export function CompanySelectionScreen() {
                 : "No companies loaded yet"}
             </p>
           </div>
-          <CreateSiteDialog onSuccess={handleSiteCreated} />
+          <Button className="gap-2" onClick={handleAddCompany}>
+            <Plus className="w-4 h-4" />
+            Add Company
+          </Button>
         </div>
 
         {/* Companies Grid */}
@@ -204,7 +207,10 @@ export function CompanySelectionScreen() {
             <h3 className="text-lg font-medium">No companies found</h3>
             <p className="text-muted-foreground mt-2">Get started by creating your first company.</p>
             <div className="mt-4">
-              <CreateSiteDialog onSuccess={handleSiteCreated} />
+              <Button className="gap-2" onClick={handleAddCompany}>
+                <Plus className="w-4 h-4" />
+                Add Company
+              </Button>
             </div>
           </Card>
         ) : (

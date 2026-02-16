@@ -18,3 +18,5 @@ export {
 export { getSitesAction, getSiteByIdAction, createSiteAction } from "./site.actions"
 export type { Site, SitesPagination, SitesApiResponse } from "./site.actions"
 
+export { getEmployeesAction } from "./employee.actions"
+export type { Employee, EmployeePagination } from "./employee.actions"
