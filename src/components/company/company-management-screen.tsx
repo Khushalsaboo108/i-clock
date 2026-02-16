@@ -6,7 +6,18 @@ import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Loader2, Building2 } from "lucide-react"
+import { Trash2, ArrowLeft, Loader2, Building2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 import { CompanySidebar } from "./company-sidebar"
 import { BasicInfoTab } from "./company-management-tabs/basic-info-tab"
@@ -14,32 +25,40 @@ import { IntegrationsTab } from "./company-management-tabs/integrations-tab"
 import { AdvancedConfigTab } from "./company-management-tabs/advanced-config-tab"
 
 import { siteFormSchema, type SiteFormValues } from "@/lib/validations/site.schema"
-import { createSiteAction } from "@/lib/actions"
+import { createSiteAction, updateSiteAction, deleteSiteAction } from "@/lib/actions/site.actions"
 
-export function CompanyManagementScreen() {
+export function CompanyManagementScreen({
+  siteId,
+  initialData,
+}: {
+  siteId?: string
+  initialData?: Partial<SiteFormValues>
+}) {
   const router = useRouter()
+  const isEdit = !!siteId
   const [activeTab, setActiveTab] = useState<"basic" | "integrations" | "advanced">("basic")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const methods = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
     defaultValues: {
-      name: "",
-      site_code: "",
-      contact: "",
-      site_password: "",
-      agrigistics_site: false,
-      send_agrigistics_gps: false,
-      pull_employees: false,
-      send_attendance: false,
-      easyroster: false,
-      eduman: false,
-      auto_remove_emp: false,
-      access_user: false,
-      easyroster_token: "",
-      data_format: "<9,Pin><2,Day><2,Month><4,Year><2,Hour><2,Minute><2,Second><1,Status><-5,SN>",
-      data_format_other: "<9,Pin><2,Day><2,Month><4,Year><2,Hour><2,Minute><2,Second><1,Status><-5,SN>",
-      server_ip: "",
+      name: initialData?.name || "",
+      site_code: initialData?.site_code || "",
+      contact: initialData?.contact || "",
+      site_password: initialData?.site_password || "",
+      agrigistics_site: initialData?.agrigistics_site ?? false,
+      send_agrigistics_gps: initialData?.send_agrigistics_gps ?? false,
+      pull_employees: initialData?.pull_employees ?? false,
+      send_attendance: initialData?.send_attendance ?? false,
+      easyroster: initialData?.easyroster ?? false,
+      eduman: initialData?.eduman ?? false,
+      auto_remove_emp: initialData?.auto_remove_emp ?? false,
+      access_user: initialData?.access_user ?? false,
+      easyroster_token: initialData?.easyroster_token || "",
+      data_format: initialData?.data_format || "<9,Pin><2,Day><2,Month><4,Year><2,Hour><2,Minute><2,Second><1,Status><-5,SN>",
+      data_format_other: initialData?.data_format_other || "<9,Pin><2,Day><2,Month><4,Year><2,Hour><2,Minute><2,Second><1,Status><-5,SN>",
+      server_ip: initialData?.server_ip || "",
     },
   })
 
@@ -52,18 +71,40 @@ export function CompanyManagementScreen() {
   const onSubmit = async (data: SiteFormValues) => {
     setIsSubmitting(true)
     try {
-      const result = await createSiteAction(data)
+      const result = isEdit
+        ? await updateSiteAction(siteId, data)
+        : await createSiteAction(data)
+
       if (result.success) {
-        toast.success("Company created successfully")
+        toast.success(isEdit ? "Company updated successfully" : "Company created successfully")
         router.push("/")
       } else {
-        toast.error(result.message || "Failed to create company")
+        toast.error(result.message || `Failed to ${isEdit ? 'update' : 'create'} company`)
       }
     } catch (error) {
       toast.error("An unexpected error occurred")
       console.error(error)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const onDelete = async () => {
+    if (!siteId) return
+    setIsDeleting(true)
+    try {
+      const result = await deleteSiteAction(siteId)
+      if (result.success) {
+        toast.success("Company deleted successfully")
+        router.push("/")
+      } else {
+        toast.error(result.message || "Failed to delete company")
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred")
+      console.error(error)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -85,35 +126,79 @@ export function CompanyManagementScreen() {
                     <span>Companies</span>
                   </button>
                   <span>{">"}</span>
-                  <span>New Company</span>
+                  <span>{isEdit ? "Edit Company" : "New Company"}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="p-1.5 bg-primary/10 rounded-lg">
                     <Building2 className="w-5 h-5 text-primary" />
                   </div>
                   <h1 className="text-2xl font-semibold text-foreground">
-                    Register New Company
+                    {isEdit ? `Edit ${initialData?.name || 'Company'}` : "Register New Company"}
                   </h1>
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                {isEdit && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        disabled={isSubmitting || isDeleting}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the
+                          company <strong> {initialData?.name}</strong> and all associated data.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={(e) => {
+                            e.preventDefault()
+                            onDelete()
+                          }}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={isDeleting}
+                        >
+                          {isDeleting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Deleting...
+                            </>
+                          ) : (
+                            "Permanently Delete"
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
                 <Button
                   type="button"
                   variant="outline"
                   className="bg-transparent border-border hover:bg-muted"
                   onClick={handleBackClick}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isDeleting}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="min-w-[120px]">
+                <Button type="submit" disabled={isSubmitting || isDeleting} className="min-w-[120px]">
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
+                      {isEdit ? "Saving..." : "Creating..."}
                     </>
                   ) : (
-                    "Create Company"
+                    isEdit ? "Save Changes" : "Create Company"
                   )}
                 </Button>
               </div>

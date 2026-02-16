@@ -4,8 +4,19 @@ import { useEffect, useState, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Building2, ChevronRight, Plus, ChevronLeft, Loader2, Users, Layers, Hash } from "lucide-react"
-import { getSitesAction, type Site } from "@/lib/actions"
+import { Building2, ChevronRight, Plus, ChevronLeft, Loader2, Users, Layers, Hash, Settings2, Trash2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { getSitesAction, deleteSiteAction, type Site } from "@/lib/actions"
+import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
 
 
@@ -74,6 +85,8 @@ export function CompanySelectionScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [siteToDelete, setSiteToDelete] = useState<Site | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Get page from URL or default to 1
   const currentPage = parseInt(searchParams.get("page") || "1", 10)
@@ -138,6 +151,27 @@ export function CompanySelectionScreen() {
 
   const handleAddCompany = () => {
     router.push("/company/new")
+  }
+
+  const handleDeleteSite = async () => {
+    if (!siteToDelete) return
+
+    setIsDeleting(true)
+    try {
+      const result = await deleteSiteAction(siteToDelete.site_id)
+      if (result.success) {
+        toast.success("Company deleted successfully")
+        setSites(sites.filter(s => s.site_id !== siteToDelete.site_id))
+        setSiteToDelete(null)
+      } else {
+        toast.error(result.message || "Failed to delete company")
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred")
+      console.error(err)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   // Show skeleton on initial page load
@@ -262,21 +296,86 @@ export function CompanySelectionScreen() {
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    className="w-full mt-4 bg-transparent"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleSelectCompany(site.site_id)
-                    }}
-                  >
-                    Manage Employees
-                  </Button>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      className="flex-1 bg-transparent group-hover:border-primary/50 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleSelectCompany(site.site_id)
+                      }}
+                    >
+                      Manage Employees
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="bg-transparent hover:text-primary transition-all"
+                      title="Edit Company Details"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(`/company/${site.site_id}/edit`)
+                      }}
+                    >
+                      <Settings2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="bg-transparent hover:text-destructive transition-all"
+                      title="Delete Company"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSiteToDelete(site)
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!siteToDelete} onOpenChange={(open) => !open && setSiteToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete{" "}
+                <strong>{siteToDelete?.name}</strong> and all associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setSiteToDelete(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleDeleteSite()
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete Company"
+                )}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Pagination */}
         {totalPages > 1 && (

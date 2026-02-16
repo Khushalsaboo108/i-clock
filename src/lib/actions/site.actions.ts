@@ -147,3 +147,62 @@ export async function createSiteAction(formData: SiteFormValues) {
 
   return response
 }
+
+/**
+ * Update an existing site/company
+ */
+export async function updateSiteAction(id: string | number, formData: SiteFormValues) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get("access_token")?.value
+
+  if (!token) {
+    return {
+      success: false,
+      message: "Not authenticated",
+      data: null,
+    }
+  }
+
+  // Use the shared schema for validation
+  const parseResult = createSitePayloadSchema.safeParse(formData)
+
+  if (!parseResult.success) {
+    return {
+      success: false,
+      message: "Validation failed",
+      data: null,
+      errors: parseResult.error.flatten().fieldErrors,
+    }
+  }
+
+  const response = await serverApi.patch<Site>(
+    API_ENDPOINTS.SITES.BY_ID(String(id)),
+    parseResult.data,
+    { token }
+  )
+
+  return response
+}
+
+/**
+ * Delete an existing site/company
+ */
+export async function deleteSiteAction(id: string | number) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get("access_token")?.value
+
+  if (!token) {
+    return {
+      success: false,
+      message: "Not authenticated",
+      data: null,
+    }
+  }
+
+  const response = await serverApi.delete<null>(
+    API_ENDPOINTS.SITES.BY_ID(String(id)),
+    { token }
+  )
+
+  return response
+}
