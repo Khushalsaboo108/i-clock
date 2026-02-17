@@ -19,10 +19,12 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
     name: "filters"
   })
 
-  const clockingMethod = watch("clocking_config.method")
-  const isSaved = watch("clocking_config.saved_as_received")
-  const isSmart = watch("clocking_config.smart_detection.alternating_mode")
-  const detectionMethod = isSaved ? "saved" : "smart"
+  const clockingSource = watch("clocking_config.source")
+  const clockingMode = watch("clocking_config.mode")
+
+  // effectiveMode: "directional" | "alternating"
+  // If source === "work_rule" → use work rule default mode (assume directional for now)
+  const effectiveMode = clockingSource === "work_rule" ? "directional" : clockingMode
 
   const addFilter = () => {
     append({ group: `Filter ${filters.length + 1}`, value: "" })
@@ -290,10 +292,14 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
         </div>
       </section>
 
-      {/* Section 3: Work Configuration */}
+      {/* Section 3: Work & Clocking Configuration */}
       <section className="border border-border rounded-lg p-6 bg-card">
-        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">Work Configuration</h2>
-        <div className="space-y-5">
+        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">
+          Work & Clocking Configuration
+        </h2>
+
+        <div className="space-y-6">
+          {/* Part 1: Work Rules */}
           <div>
             <Label htmlFor="work_rules_id" className="text-sm font-medium text-muted-foreground mb-2 block">
               Work Rules <span className="text-red-500">*</span>
@@ -330,79 +336,59 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
             <p className="text-xs text-muted-foreground mt-1 font-medium">Quick access to assigned rules and shifts</p>
           </div>
 
-          <div>
+          <div className="border-t border-border/50 pt-6">
             <Label className="text-sm font-medium text-muted-foreground mb-3 block">Clocking Method</Label>
             <RadioGroup
-              value={clockingMethod}
-              onValueChange={(v) => setValue("clocking_config.method", v as any)}
+              value={clockingSource}
+              onValueChange={(v) => setValue("clocking_config.source", v as any)}
             >
               <div className="flex items-center space-x-2 mb-3">
-                <RadioGroupItem value="default" id="default-method" />
+                <RadioGroupItem value="work_rule" id="default-method" />
                 <Label htmlFor="default-method" className="font-normal cursor-pointer">
                   Use Work Rule Default
                 </Label>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="override" id="override-method" />
+                  <RadioGroupItem value="employee_override" id="override-method" />
                   <Label htmlFor="override-method" className="font-normal cursor-pointer">
                     Override:
                   </Label>
                 </div>
                 <div className="ml-6">
                   <Select
-                    value={watch("clocking_config.override_type")}
-                    onValueChange={(v) => setValue("clocking_config.override_type", v as any)}
-                    disabled={clockingMethod === "default"}
+                    value={clockingMode}
+                    onValueChange={(v) => setValue("clocking_config.mode", v as any)}
+                    disabled={clockingSource === "work_rule"}
                   >
                     <SelectTrigger className="h-10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="smart">Smart Clock Detection</SelectItem>
-                      <SelectItem value="manual">Manual Entry</SelectItem>
-                      <SelectItem value="biometric">Biometric</SelectItem>
+                      <SelectItem value="directional">Directional</SelectItem>
+                      <SelectItem value="alternating">Alternating</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </RadioGroup>
           </div>
-        </div>
-      </section>
 
-      {/* Section 4: Clocking Detection Settings */}
-      <section className="border border-border rounded-lg p-6 bg-card">
-        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">
-          Clocking Detection Settings
-        </h2>
-        <div>
-          <Label className="text-sm font-medium text-muted-foreground mb-3 block">
-            Directional Clocking <span className="text-red-500">*</span>
-          </Label>
-          <RadioGroup
-            value={detectionMethod}
-            onValueChange={(v) => {
-              if (v === "saved") {
-                setValue("clocking_config.saved_as_received", true)
-                setValue("clocking_config.smart_detection.alternating_mode", false)
-              } else {
-                setValue("clocking_config.saved_as_received", false)
-                setValue("clocking_config.smart_detection.alternating_mode", true)
-              }
-            }}
-          >
+          <div className="border-t border-border/50 pt-6">
+            <Label className="text-sm font-medium text-muted-foreground mb-3 block">
+              {effectiveMode === "directional" ? "Directional Clocking" : "Alternating Detection"} <span className="text-red-500">*</span>
+            </Label>
+
             <div className="space-y-4">
-              {/* Option 1 */}
-              <div className="bg-muted/30 rounded-lg p-4 border border-border">
-                <div className="flex items-start gap-2">
-                  <RadioGroupItem value="saved" id="saved-method" className="mt-0.5" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="saved-method" className="font-semibold cursor-pointer">
-                        Clocking Saved as Received by Reader
-                      </Label>
-                      <TooltipProvider>
+              {/* Directional Mode View */}
+              {effectiveMode === "directional" && (
+                <div className="bg-muted/30 rounded-lg p-4 border border-border">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Label className="font-semibold">
+                          Clocking Saved as Received by Reader
+                        </Label>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="w-4 h-4 text-muted-foreground cursor-help" />
@@ -411,23 +397,22 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
                             <p className="max-w-xs">If reader sends an IN, it MUST be recorded as an IN regardless of previous state.</p>
                           </TooltipContent>
                         </Tooltip>
-                      </TooltipProvider>
+                      </div>
+                      <p className="text-[13px] text-muted-foreground mt-1">Status (IN/OUT) is preserved from the hardware device.</p>
                     </div>
-                    <p className="text-[13px] text-muted-foreground mt-1">Status (IN/OUT) is preserved from the hardware device.</p>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Option 2 */}
-              <div className="bg-muted/30 rounded-lg p-4 border border-border">
-                <div className="flex items-start gap-2">
-                  <RadioGroupItem value="smart" id="smart-method" className="mt-0.5" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="smart-method" className="font-semibold cursor-pointer">
-                        Alternating Detection (Toggling)
-                      </Label>
-                      <TooltipProvider>
+              {/* Alternating Mode View */}
+              {effectiveMode === "alternating" && (
+                <div className="bg-muted/30 rounded-lg p-4 border border-border">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Label className="font-semibold">
+                          Alternating Detection (Toggling)
+                        </Label>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="w-4 h-4 text-muted-foreground cursor-help" />
@@ -436,14 +421,12 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
                             <p className="max-w-xs">First clock of day = IN. Automatically alternates OUT, IN, OUT...</p>
                           </TooltipContent>
                         </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <p className="text-[13px] text-muted-foreground mt-1 mb-4">
-                      {"Force first clock as IN, then toggle status for each subsequent read."}
-                    </p>
+                      </div>
+                      <p className="text-[13px] text-muted-foreground mt-1 mb-4">
+                        {"Force first clock as IN, then toggle status for each subsequent read."}
+                      </p>
 
-                    {detectionMethod === "smart" && (
-                      <div className="ml-6 mt-3 p-4 bg-card rounded border border-border shadow-sm">
+                      <div className="ml-0 mt-3 p-4 bg-card rounded border border-border shadow-sm">
                         <Label className="text-sm font-medium text-muted-foreground mb-3 block">
                           New Shift Consider Timing:
                         </Label>
@@ -451,7 +434,7 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
                           <div className="flex items-center gap-2">
                             <Input
                               type="number"
-                              {...register("clocking_config.smart_detection.new_shift_threshold.hours")}
+                              {...register("clocking_config.new_shift_threshold.hours")}
                               className="w-[70px] h-10 text-center"
                               min="0"
                             />
@@ -460,7 +443,7 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
                           <div className="flex items-center gap-2">
                             <Input
                               type="number"
-                              {...register("clocking_config.smart_detection.new_shift_threshold.minutes")}
+                              {...register("clocking_config.new_shift_threshold.minutes")}
                               className="w-[70px] h-10 text-center"
                               min="0"
                               max="59"
@@ -472,16 +455,16 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
                           Wait time after which the next clocking is seen as a new shift (Reset to IN).
                         </p>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
-          </RadioGroup>
+          </div>
         </div>
       </section>
 
-      {/* Section 5: Additional Required Information */}
+      {/* Section 4: Additional Required Information */}
       <section className="border border-border rounded-lg p-6 bg-card">
         <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">
           Additional Required Information
