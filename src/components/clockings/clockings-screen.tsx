@@ -6,7 +6,6 @@ import { ClockingsTable } from "@/components/clockings/clockings-table"
 import { PaginationBar } from "@/components/clockings/pagination-bar"
 import { EditPanel } from "@/components/clockings/edit-panel"
 import { BulkEditModal } from "@/components/clockings/bulk-edit-modal"
-import { Toaster } from "@/components/ui/toaster"
 
 // Mock data type definition
 export type ClockingRecord = {
@@ -185,8 +184,6 @@ export function ClockingsScreen() {
         action={bulkAction}
         selectedEmployees={data.filter((d) => selectedRows.includes(d.id))}
       />
-
-      <Toaster />
     </div>
   )
 }

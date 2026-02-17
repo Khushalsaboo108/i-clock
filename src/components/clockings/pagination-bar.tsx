@@ -1,11 +1,4 @@
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import { StandardPagination } from "@/components/ui/pagination"
 
 interface PaginationBarProps {
   totalRecords: number
@@ -16,9 +9,22 @@ interface PaginationBarProps {
     issues: number
     absent: number
   }
+  currentPage?: number
+  totalPages?: number
+  onPageChange?: (page: number) => void
+  isLoading?: boolean
 }
 
-export function PaginationBar({ totalRecords, showingStart, showingEnd, summary }: PaginationBarProps) {
+export function PaginationBar({
+  totalRecords,
+  showingStart,
+  showingEnd,
+  summary,
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange = () => { },
+  isLoading = false
+}: PaginationBarProps) {
   return (
     <div className="bg-white border-t border-gray-200 px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky bottom-0 z-20">
       <div className="text-sm text-gray-600 font-medium">
@@ -41,25 +47,12 @@ export function PaginationBar({ totalRecords, showingStart, showingEnd, summary 
       </div>
 
       <div className="flex items-center gap-2">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#" className="pointer-events-none opacity-50" />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#" isActive>1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">2</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">3</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="#" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <StandardPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   )

@@ -125,3 +125,93 @@ export {
   PaginationNext,
   PaginationEllipsis,
 }
+
+// --- Standardized Pagination Logic ---
+
+interface StandardPaginationProps {
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
+  isLoading?: boolean
+  className?: string
+}
+
+export function StandardPagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  isLoading = false,
+  className,
+}: StandardPaginationProps) {
+  if (totalPages <= 1) return null
+
+  const handlePageClick = (e: React.MouseEvent, page: number) => {
+    e.preventDefault()
+    if (page !== currentPage && !isLoading) {
+      onPageChange(page)
+    }
+  }
+
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = []
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+      pages.push(1)
+      if (currentPage > 3) pages.push("ellipsis")
+      const start = Math.max(2, currentPage - 1)
+      const end = Math.min(totalPages - 1, currentPage + 1)
+      for (let i = start; i <= end; i++) {
+        if (!pages.includes(i)) pages.push(i)
+      }
+      if (currentPage < totalPages - 2) pages.push("ellipsis")
+      if (!pages.includes(totalPages)) pages.push(totalPages)
+    }
+    return pages
+  }
+
+  return (
+    <Pagination className={cn("w-auto mx-0", className)}>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            href="#"
+            onClick={(e) => handlePageClick(e, currentPage - 1)}
+            aria-disabled={currentPage <= 1 || isLoading}
+            className={cn(
+              currentPage <= 1 || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"
+            )}
+          />
+        </PaginationItem>
+
+        {getPageNumbers().map((page, index) => (
+          <PaginationItem key={index}>
+            {page === "ellipsis" ? (
+              <PaginationEllipsis />
+            ) : (
+              <PaginationLink
+                href="#"
+                isActive={page === currentPage}
+                onClick={(e) => handlePageClick(e, page as number)}
+                className={cn(isLoading && "pointer-events-none opacity-50", "cursor-pointer")}
+              >
+                {page}
+              </PaginationLink>
+            )}
+          </PaginationItem>
+        ))}
+
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            onClick={(e) => handlePageClick(e, currentPage + 1)}
+            aria-disabled={currentPage >= totalPages || isLoading}
+            className={cn(
+              currentPage >= totalPages || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"
+            )}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  )
+}

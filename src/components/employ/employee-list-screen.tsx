@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Plus, Search, ChevronRight, ChevronLeft, Users, Loader2, ArrowUpDown } from "lucide-react"
 import { getEmployeesAction, getSiteByIdAction, type Employee, type Site } from "@/lib/actions"
 import { cn } from "@/lib/utils"
+import { StandardPagination } from "@/components/ui/pagination"
 import {
   ColumnDef,
   flexRender,
@@ -422,55 +423,12 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
                 <p className="text-sm text-muted-foreground">
                   Page {pagination.page} of {totalPages} • {pagination.total} total employees
                 </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage <= 1 || isLoading}
-                    className="gap-1"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </Button>
-
-                  {/* Page numbers */}
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                    let pageNum: number
-                    if (totalPages <= 5) {
-                      pageNum = i + 1
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i
-                    } else {
-                      pageNum = currentPage - 2 + i
-                    }
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                        disabled={isLoading}
-                        className="min-w-[36px]"
-                      >
-                        {pageNum}
-                      </Button>
-                    )
-                  })}
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage >= totalPages || isLoading}
-                    className="gap-1"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
+                <StandardPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  isLoading={isLoading}
+                />
               </div>
             )}
           </CardContent>
