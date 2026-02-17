@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Plus, Edit, Settings, Trash2, Check, X } from "lucide-react"
+import { format } from "date-fns"
 import { useState } from "react"
 
 interface CalendarDetailProps {
@@ -155,11 +156,7 @@ export default function CalendarDetail({
                         <h4 className="font-medium text-foreground">{holiday.name}</h4>
                         <p className="mt-1 text-sm text-muted-foreground">
                           Date:{" "}
-                          {new Date(holiday.date).toLocaleDateString("en-US", {
-                            month: "long",
-                            day: "numeric",
-                            year: "numeric",
-                          })}{" "}
+                          {format(new Date(holiday.date), "MMMM d, yyyy")}{" "}
                           ({holiday.dayOfWeek})
                         </p>
                         <div className="mt-2 flex items-center gap-2">

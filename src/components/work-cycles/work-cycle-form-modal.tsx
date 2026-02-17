@@ -442,12 +442,15 @@ export function WorkCycleFormModal({ isOpen, onClose, onSave, editingCycle }: Wo
                                                         className="flex items-center gap-1"
                                                     >
                                                         {shiftCode}
-                                                        <button
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-sm"
                                                             onClick={() => handleRemoveShiftFromDay(index, shiftCode)}
-                                                            className="ml-1 hover:text-red-500"
+                                                            className="ml-1 h-4 w-4 rounded-full p-0 hover:text-red-500 hover:bg-transparent"
                                                         >
                                                             <X className="w-3 h-3" />
-                                                        </button>
+                                                            <span className="sr-only">Remove {shiftCode}</span>
+                                                        </Button>
                                                     </Badge>
                                                 ))}
                                                 {alloc.shiftCodes.length === 0 && (

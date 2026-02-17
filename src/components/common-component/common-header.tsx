@@ -3,6 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { CalendarCheck2, LucideAlarmClockCheck, Type as type, type LucideIcon } from "lucide-react"
+import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
@@ -46,18 +47,11 @@ export default function CommonHeader() {
   }
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
+    return format(date, "dd/MM/yyyy")
   }
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+    return format(date, "HH:mm")
   }
 
   return (

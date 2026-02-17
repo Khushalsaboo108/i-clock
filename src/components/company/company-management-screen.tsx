@@ -6,7 +6,7 @@ import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Trash2, ArrowLeft, Loader2, Building2 } from "lucide-react"
+import { Trash2, ArrowLeft, Loader2, Building2, AlertCircle } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,14 +117,16 @@ export function CompanyManagementScreen({
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
+                    size="sm"
                     onClick={handleBackClick}
-                    className="flex items-center gap-1 hover:text-foreground transition-colors"
+                    className="flex items-center gap-1 hover:text-foreground transition-colors p-0 h-auto font-normal"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Companies</span>
-                  </button>
+                  </Button>
                   <span>{">"}</span>
                   <span>{isEdit ? "Edit Company" : "New Company"}</span>
                 </div>
@@ -218,37 +220,40 @@ export function CompanyManagementScreen({
                 {/* Tab Navigation */}
                 <div className="border-b border-border bg-muted/20">
                   <nav className="flex gap-8 px-8" aria-label="Tabs">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setActiveTab("basic")}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-all ${activeTab === "basic"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                      className={`py-4 px-1 rounded-none border-b-2 font-medium text-sm transition-all h-auto ${activeTab === "basic"
+                        ? "border-primary text-primary hover:bg-transparent"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border hover:bg-transparent"
                         }`}
                     >
                       Basic Information
                       <span className="text-red-500 ml-1">*</span>
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setActiveTab("integrations")}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-all ${activeTab === "integrations"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                      className={`py-4 px-1 rounded-none border-b-2 font-medium text-sm transition-all h-auto ${activeTab === "integrations"
+                        ? "border-primary text-primary hover:bg-transparent"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border hover:bg-transparent"
                         }`}
                     >
                       Integrations
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setActiveTab("advanced")}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-all ${activeTab === "advanced"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                      className={`py-4 px-1 rounded-none border-b-2 font-medium text-sm transition-all h-auto ${activeTab === "advanced"
+                        ? "border-primary text-primary hover:bg-transparent"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border hover:bg-transparent"
                         }`}
                     >
                       Advanced Configuration
-                    </button>
+                    </Button>
                   </nav>
                 </div>
 
@@ -264,9 +269,7 @@ export function CompanyManagementScreen({
               {Object.keys(errors).length > 0 && (
                 <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-3">
                   <div className="p-2 bg-destructive/20 rounded-full">
-                    <svg className="w-4 h-4 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="I12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <AlertCircle className="w-4 h-4 text-destructive" />
                   </div>
                   <p className="text-sm font-medium text-destructive">
                     Please correct the errors in the <strong>Basic Information</strong> tab before submitting.

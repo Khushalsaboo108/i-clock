@@ -141,14 +141,16 @@ export function EmployeeManagementScreen({
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
+                    size="sm"
                     onClick={handleBackClick}
-                    className="flex items-center gap-1 hover:text-foreground transition-colors"
+                    className="flex items-center gap-1 hover:text-foreground transition-colors p-0 h-auto font-normal"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Employees</span>
-                  </button>
+                  </Button>
                   <span>{">"}</span>
                   <span>{isNew ? "New Employee" : (employeeId || "John Smith")}</span>
                 </div>
@@ -200,47 +202,51 @@ export function EmployeeManagementScreen({
               <div className="bg-card rounded-lg shadow-sm border border-border">
                 <div className="border-b border-border">
                   <nav className="flex gap-8 px-8" aria-label="Tabs">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setActiveTab("required")}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "required"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                      className={`py-4 px-1 rounded-none border-b-2 font-medium text-sm transition-colors h-auto ${activeTab === "required"
+                        ? "border-primary text-primary hover:bg-transparent"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border hover:bg-transparent"
                         }`}
                     >
                       Required Information
                       <span className="text-red-500 ml-1">*</span>
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setActiveTab("personal")}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "personal"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                      className={`py-4 px-1 rounded-none border-b-2 font-medium text-sm transition-colors h-auto ${activeTab === "personal"
+                        ? "border-primary text-primary hover:bg-transparent"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border hover:bg-transparent"
                         }`}
                     >
                       Personal Details
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setActiveTab("documents")}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "documents"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                      className={`py-4 px-1 rounded-none border-b-2 font-medium text-sm transition-colors h-auto ${activeTab === "documents"
+                        ? "border-primary text-primary hover:bg-transparent"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border hover:bg-transparent"
                         }`}
                     >
                       Documents & Compliance
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setActiveTab("disciplinary")}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "disciplinary"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                      className={`py-4 px-1 rounded-none border-b-2 font-medium text-sm transition-colors h-auto ${activeTab === "disciplinary"
+                        ? "border-primary text-primary hover:bg-transparent"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border hover:bg-transparent"
                         }`}
                     >
                       Disciplinary Records
-                    </button>
+                    </Button>
                   </nav>
                 </div>
 

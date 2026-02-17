@@ -167,8 +167,10 @@ function LoginForm() {
                             className="pl-10 pr-10 h-11"
                             {...field}
                           />
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-sm"
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             aria-label={showPassword ? "Hide password" : "Show password"}
@@ -178,7 +180,7 @@ function LoginForm() {
                             ) : (
                               <Eye className="w-4 h-4" />
                             )}
-                          </button>
+                          </Button>
                         </div>
                       </FormControl>
                       <FormMessage />

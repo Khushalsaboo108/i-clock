@@ -112,16 +112,18 @@ export default function ForgotPasswordPage() {
                   </p>
                   <p className="text-xs text-muted-foreground mt-4">
                     Didn't receive the email? Check your spam folder, or{" "}
-                    <button
+                    <Button
                       type="button"
+                      variant="link"
+                      size="sm"
                       onClick={() => {
                         setIsSuccess(false)
                         setError(null)
                       }}
-                      className="text-primary hover:underline font-medium"
+                      className="text-primary hover:underline font-medium p-0 h-auto"
                     >
                       try another email address
-                    </button>
+                    </Button>
                   </p>
                 </div>
               </CardContent>

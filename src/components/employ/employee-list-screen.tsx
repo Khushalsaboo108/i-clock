@@ -1,6 +1,5 @@
-"use client"
-
-import { useEffect, useState, useCallback } from "react"
+import * as React from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,8 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Plus, Search, ChevronRight, ChevronLeft, Users, Loader2 } from "lucide-react"
+import { ArrowLeft, Plus, Search, ChevronRight, ChevronLeft, Users, Loader2, ArrowUpDown } from "lucide-react"
 import { getEmployeesAction, getSiteByIdAction, type Employee, type Site } from "@/lib/actions"
+import { cn } from "@/lib/utils"
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getSortedRowModel,
+  SortingState,
+} from "@tanstack/react-table"
 
 interface Pagination {
   total: number
@@ -76,6 +84,7 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [sorting, setSorting] = useState<SortingState>([])
 
   const currentPage = parseInt(searchParams.get("page") || "1", 10)
   const limit = parseInt(searchParams.get("limit") || "10", 10)
@@ -144,13 +153,115 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
   const totalPages = Math.ceil(pagination.total / pagination.limit)
 
   // Client-side search filtering
-  const filteredEmployees = employees.filter(
-    (emp) =>
-      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.pin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (emp.employee_code && emp.employee_code.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase())),
+  const filteredData = useMemo(() => {
+    return employees.filter(
+      (emp) =>
+        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.pin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (emp.employee_code && emp.employee_code.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase())),
+    )
+  }, [employees, searchTerm])
+
+  const columns = useMemo<ColumnDef<Employee>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <div
+            className="flex items-center gap-1 cursor-pointer hover:text-foreground"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Name
+            <ArrowUpDown className="w-4 h-4" />
+          </div>
+        ),
+        cell: ({ row }) => <span className="font-medium text-foreground">{row.getValue("name")}</span>,
+      },
+      {
+        accessorKey: "pin",
+        header: ({ column }) => (
+          <div
+            className="flex items-center gap-1 cursor-pointer hover:text-foreground"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            PIN
+            <ArrowUpDown className="w-4 h-4" />
+          </div>
+        ),
+        cell: ({ row }) => <span className="text-muted-foreground font-mono">{row.getValue("pin")}</span>,
+      },
+      {
+        accessorKey: "employee_code",
+        header: ({ column }) => (
+          <div
+            className="flex items-center gap-1 cursor-pointer hover:text-foreground"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Employee Code
+            <ArrowUpDown className="w-4 h-4" />
+          </div>
+        ),
+        cell: ({ row }) => <span className="text-muted-foreground">{row.getValue("employee_code") || "—"}</span>,
+      },
+      {
+        accessorKey: "phone",
+        header: "Phone",
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.getValue("phone") || "—"}</span>,
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <div
+            className="flex items-center gap-1 cursor-pointer hover:text-foreground"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Status
+            <ArrowUpDown className="w-4 h-4" />
+          </div>
+        ),
+        cell: ({ row }) => {
+          const status = row.getValue("status") as string
+          return (
+            <Badge className={statusColors[status] || statusColors["Inactive"]}>
+              {status}
+            </Badge>
+          )
+        },
+      },
+      {
+        id: "actions",
+        header: () => <div className="text-right">Action</div>,
+        cell: ({ row }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleEmployeeClick(row.original.employee_id)
+              }}
+              className="rounded-full"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [companyId, router]
   )
+
+  const table = useReactTable({
+    data: filteredData,
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  })
 
   // Counts
   const activeCount = employees.filter((e) => e.status === "Active").length
@@ -262,54 +373,39 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead>Name</TableHead>
-                    <TableHead>PIN</TableHead>
-                    <TableHead>Employee Code</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id} className="bg-muted/50">
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
                 </TableHeader>
                 <TableBody>
-                  {filteredEmployees.length > 0 ? (
-                    filteredEmployees.map((employee) => (
+                  {table.getRowModel().rows?.length > 0 ? (
+                    table.getRowModel().rows.map((row) => (
                       <TableRow
-                        key={employee.employee_id}
+                        key={row.id}
                         className="cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => handleEmployeeClick(employee.employee_id)}
+                        onClick={() => handleEmployeeClick(row.original.employee_id)}
                       >
-                        <TableCell className="font-medium text-foreground">{employee.name}</TableCell>
-                        <TableCell className="text-muted-foreground font-mono">{employee.pin}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {employee.employee_code || "—"}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {employee.phone || "—"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={statusColors[employee.status] || statusColors["Inactive"]}>
-                            {employee.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleEmployeeClick(employee.employee_id)
-                            }}
-                            className="rounded-full"
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell
+                            key={cell.id}
+                            className={cn(cell.column.id === "actions" && "text-right")}
                           >
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={columns.length} className="text-center py-8 text-muted-foreground">
                         {searchTerm
                           ? "No employees found matching your search"
                           : "No employees found for this company"}

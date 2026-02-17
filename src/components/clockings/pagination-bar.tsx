@@ -1,5 +1,11 @@
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface PaginationBarProps {
   totalRecords: number
@@ -35,15 +41,25 @@ export function PaginationBar({ totalRecords, showingStart, showingEnd, summary 
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled>
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Previous
-        </Button>
-        <span className="text-sm font-medium text-gray-700 px-2">Page 1 of 5</span>
-        <Button variant="outline" size="sm">
-          Next
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious href="#" className="pointer-events-none opacity-50" />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="#" isActive>1</PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="#">2</PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="#">3</PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext href="#" />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
   )

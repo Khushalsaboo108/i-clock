@@ -190,8 +190,10 @@ function ResetPasswordContent() {
                         aria-invalid={errors.password ? "true" : "false"}
                         disabled={!token}
                       />
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon-sm"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         aria-label={
@@ -203,7 +205,7 @@ function ResetPasswordContent() {
                         ) : (
                           <Eye className="w-4 h-4" />
                         )}
-                      </button>
+                      </Button>
                     </div>
                     {errors.password && (
                       <p className="text-sm text-destructive">
@@ -235,8 +237,10 @@ function ResetPasswordContent() {
                         aria-invalid={errors.confirmPassword ? "true" : "false"}
                         disabled={!token}
                       />
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon-sm"
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
@@ -250,7 +254,7 @@ function ResetPasswordContent() {
                         ) : (
                           <Eye className="w-4 h-4" />
                         )}
-                      </button>
+                      </Button>
                     </div>
                     {errors.confirmPassword && (
                       <p className="text-sm text-destructive">

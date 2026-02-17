@@ -1,5 +1,7 @@
 "use client"
 
+import * as React from "react"
+import { useState, useMemo } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,6 +10,15 @@ import { cn } from "@/lib/utils"
 import { Edit2, Eye, ArrowUpDown } from "lucide-react"
 import type { ClockingRecord } from "@/components/clockings/clockings-screen"
 import { format } from "date-fns"
+
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getSortedRowModel,
+  SortingState,
+} from "@tanstack/react-table"
 
 interface ClockingsTableProps {
   data: ClockingRecord[]
@@ -26,6 +37,8 @@ export function ClockingsTable({
   onSelectRow,
   onSelectAll,
 }: ClockingsTableProps) {
+  const [sorting, setSorting] = useState<SortingState>([])
+
   const getStatusColor = (status: ClockingRecord["status"]) => {
     switch (status) {
       case "Target Met":
@@ -71,161 +84,256 @@ export function ClockingsTable({
     }
   }
 
+  const columns = useMemo<ColumnDef<ClockingRecord>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          isBulkEditMode ? (
+            <TableHead className="w-[50px]">
+              <Checkbox
+                checked={table.getIsAllPageRowsSelected()}
+                onCheckedChange={(value) => {
+                  table.toggleAllPageRowsSelected(!!value)
+                  onSelectAll(!!value)
+                }}
+              />
+            </TableHead>
+          ) : null
+        ),
+        cell: ({ row }) => (
+          isBulkEditMode ? (
+            <TableCell>
+              <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => {
+                  row.toggleSelected(!!value)
+                  onSelectRow(row.original.id)
+                }}
+              />
+            </TableCell>
+          ) : null
+        ),
+        enableSorting: false,
+      },
+      {
+        accessorKey: "employeeId",
+        header: () => <TableHead className="w-[120px] font-semibold text-muted-foreground uppercase text-[13px]">Employee #</TableHead>,
+        cell: ({ row }) => <TableCell className="font-mono text-muted-foreground font-medium">{row.getValue("employeeId")}</TableCell>,
+      },
+      {
+        accessorKey: "employeeName",
+        header: ({ column }) => (
+          <TableHead className="w-[200px] font-semibold text-muted-foreground uppercase text-[13px]">
+            <div
+              className="flex items-center gap-1 cursor-pointer hover:text-foreground"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Employee Name
+              <ArrowUpDown className="h-3 w-3" />
+            </div>
+          </TableHead>
+        ),
+        cell: ({ row }) => <TableCell className="font-medium text-foreground">{row.getValue("employeeName")}</TableCell>,
+      },
+      {
+        accessorKey: "date",
+        header: ({ column }) => (
+          <TableHead className="w-[120px] font-semibold text-muted-foreground uppercase text-[13px] text-center">
+            <div
+              className="flex items-center justify-center gap-1 cursor-pointer hover:text-foreground"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Date
+              <ArrowUpDown className="h-3 w-3" />
+            </div>
+          </TableHead>
+        ),
+        cell: ({ row }) => (
+          <TableCell className="text-center text-muted-foreground">
+            {format(new Date(row.getValue("date")), "dd/MM/yyyy")}
+          </TableCell>
+        ),
+      },
+      {
+        accessorKey: "clockIn",
+        header: () => <TableHead className="w-[120px] font-semibold text-muted-foreground uppercase text-[13px] text-center">Clock IN</TableHead>,
+        cell: ({ row }) => {
+          const record = row.original
+          return (
+            <TableCell className="text-center">
+              {record.status === "Paid Leave" ? (
+                <span className="text-sm font-medium text-green-600 italic">{record.notes || "Paid Leave"}</span>
+              ) : record.status === "Absent" ? (
+                <span className="text-gray-400 font-mono">--:--</span>
+              ) : (
+                <div className="flex flex-col items-center gap-1">
+                  {record.clockIn.length > 0 ? (
+                    record.clockIn.map((time, i) => (
+                      <span
+                        key={i}
+                        className="font-mono text-foreground bg-background/50 px-1 rounded hover:bg-background cursor-pointer group flex items-center gap-1"
+                      >
+                        {time}
+                        <Edit2 className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-400 font-mono">--:--</span>
+                  )}
+                </div>
+              )}
+            </TableCell>
+          )
+        },
+      },
+      {
+        accessorKey: "clockOut",
+        header: () => <TableHead className="w-[120px] font-semibold text-muted-foreground uppercase text-[13px] text-center">Clock OUT</TableHead>,
+        cell: ({ row }) => {
+          const record = row.original
+          return (
+            <TableCell className="text-center">
+              {record.status === "Paid Leave" ? (
+                <span className="text-sm text-gray-400">-</span>
+              ) : record.status === "Absent" ? (
+                <span className="text-gray-400 font-mono">--:--</span>
+              ) : (
+                <div className="flex flex-col items-center gap-1">
+                  {record.clockOut.length > 0 ? (
+                    record.clockOut.map((time, i) => (
+                      <span
+                        key={i}
+                        className="font-mono text-foreground bg-background/50 px-1 rounded hover:bg-background cursor-pointer group flex items-center gap-1"
+                      >
+                        {time}
+                        <Edit2 className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-400 font-mono">--:--</span>
+                  )}
+                </div>
+              )}
+            </TableCell>
+          )
+        },
+      },
+      {
+        accessorKey: "totalHours",
+        header: () => <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase text-[13px] text-center">Total Hours</TableHead>,
+        cell: ({ row }) => {
+          const record = row.original
+          return (
+            <TableCell className="text-center">
+              <div className="flex flex-col items-center">
+                <span
+                  className={cn(
+                    "font-mono font-medium",
+                    record.status === "Target Met" || record.status === "Paid Leave"
+                      ? "font-bold text-foreground"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {record.totalHours}
+                </span>
+                <span className="text-[10px] text-gray-500 uppercase">
+                  {record.isOverride ? "(Override)" : "(Calculated)"}
+                </span>
+              </div>
+            </TableCell>
+          )
+        },
+      },
+      {
+        accessorKey: "status",
+        header: () => <TableHead className="w-[160px] font-semibold text-muted-foreground uppercase text-[13px] text-center">Status</TableHead>,
+        cell: ({ row }) => (
+          <TableCell className="text-center">
+            <Badge
+              variant="outline"
+              className={cn("font-medium px-2 py-0.5 whitespace-nowrap", getStatusColor(row.getValue("status")))}
+            >
+              <span className="mr-1.5">{getStatusIcon(row.getValue("status"))}</span>
+              {row.getValue("status")}
+            </Badge>
+          </TableCell>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => <TableHead className="w-[100px] font-semibold text-muted-foreground uppercase text-[13px] text-center">Actions</TableHead>,
+        cell: ({ row }) => (
+          <TableCell className="text-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              onClick={() => onEdit(row.original)}
+            >
+              {row.original.status === "Paid Leave" ? <Eye className="h-4 w-4" /> : <Edit2 className="h-4 w-4" />}
+            </Button>
+          </TableCell>
+        )
+      }
+    ],
+    [isBulkEditMode, onSelectAll, onSelectRow, onEdit]
+  )
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting,
+      rowSelection: Object.fromEntries(selectedRows.map(id => [data.findIndex(d => d.id === id), true]))
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    enableRowSelection: true,
+  })
+
   return (
     <div className="rounded-md border border-border overflow-hidden shadow-sm bg-card">
       <Table>
         <TableHeader className="bg-muted/40 sticky top-0 z-10">
-          <TableRow className="border-b-2 border-border hover:bg-muted/40">
-            {isBulkEditMode && (
-              <TableHead className="w-[50px]">
-                <Checkbox
-                  checked={data.length > 0 && selectedRows.length === data.length}
-                  onCheckedChange={(checked) => onSelectAll(!!checked)}
-                />
-              </TableHead>
-            )}
-            <TableHead className="w-[120px] font-semibold text-muted-foreground uppercase text-[13px]">Employee #</TableHead>
-            <TableHead className="w-[200px] font-semibold text-muted-foreground uppercase text-[13px]">
-              <div className="flex items-center gap-1 cursor-pointer hover:text-foreground">
-                Employee Name
-                <ArrowUpDown className="h-3 w-3" />
-              </div>
-            </TableHead>
-            <TableHead className="w-[120px] font-semibold text-muted-foreground uppercase text-[13px] text-center">
-              <div className="flex items-center justify-center gap-1 cursor-pointer hover:text-foreground">
-                Date
-                <ArrowUpDown className="h-3 w-3" />
-              </div>
-            </TableHead>
-            <TableHead className="w-[120px] font-semibold text-muted-foreground uppercase text-[13px] text-center">
-              Clock IN
-            </TableHead>
-            <TableHead className="w-[120px] font-semibold text-muted-foreground uppercase text-[13px] text-center">
-              Clock OUT
-            </TableHead>
-            <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase text-[13px] text-center">
-              Total Hours
-            </TableHead>
-            <TableHead className="w-[160px] font-semibold text-muted-foreground uppercase text-[13px] text-center">
-              Status
-            </TableHead>
-            <TableHead className="w-[100px] font-semibold text-muted-foreground uppercase text-[13px] text-center">
-              Actions
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((record, index) => (
-            <TableRow
-              key={record.id}
-              className={cn(
-                "h-[60px] transition-colors border-b border-border",
-                getRowBackground(record.status),
-                index % 2 === 1 && record.status === "Target Met" ? "" : "", // Alternating logic overridden by status colors
-                index % 2 === 1 && !["Target Met", "Paid Leave", "Short", "Missing", "Absent"].includes(record.status)
-                  ? "bg-muted/30"
-                  : "",
-              )}
-            >
-              {isBulkEditMode && (
-                <TableCell>
-                  <Checkbox checked={selectedRows.includes(record.id)} onCheckedChange={() => onSelectRow(record.id)} />
-                </TableCell>
-              )}
-              <TableCell className="font-mono text-muted-foreground font-medium">{record.employeeId}</TableCell>
-              <TableCell className="font-medium text-foreground">{record.employeeName}</TableCell>
-              <TableCell className="text-center text-muted-foreground">{format(new Date(record.date), "dd/MM/yyyy")}</TableCell>
-
-              {/* Clock IN Column */}
-              <TableCell className="text-center">
-                {record.status === "Paid Leave" ? (
-                  <span className="text-sm font-medium text-green-600 italic">{record.notes || "Paid Leave"}</span>
-                ) : record.status === "Absent" ? (
-                  <span className="text-gray-400 font-mono">--:--</span>
-                ) : (
-                  <div className="flex flex-col items-center gap-1">
-                    {record.clockIn.length > 0 ? (
-                      record.clockIn.map((time, i) => (
-                        <span
-                          key={i}
-                          className="font-mono text-foreground bg-background/50 px-1 rounded hover:bg-background cursor-pointer group flex items-center gap-1"
-                        >
-                          {time}
-                          <Edit2 className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-400 font-mono">--:--</span>
-                    )}
-                  </div>
-                )}
-              </TableCell>
-
-              {/* Clock OUT Column */}
-              <TableCell className="text-center">
-                {record.status === "Paid Leave" ? (
-                  <span className="text-sm text-gray-400">-</span>
-                ) : record.status === "Absent" ? (
-                  <span className="text-gray-400 font-mono">--:--</span>
-                ) : (
-                  <div className="flex flex-col items-center gap-1">
-                    {record.clockOut.length > 0 ? (
-                      record.clockOut.map((time, i) => (
-                        <span
-                          key={i}
-                          className="font-mono text-foreground bg-background/50 px-1 rounded hover:bg-background cursor-pointer group flex items-center gap-1"
-                        >
-                          {time}
-                          <Edit2 className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-400 font-mono">--:--</span>
-                    )}
-                  </div>
-                )}
-              </TableCell>
-
-              <TableCell className="text-center">
-                <div className="flex flex-col items-center">
-                  <span
-                    className={cn(
-                      "font-mono font-medium",
-                      record.status === "Target Met" || record.status === "Paid Leave"
-                        ? "font-bold text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {record.totalHours}
-                  </span>
-                  <span className="text-[10px] text-gray-500 uppercase">
-                    {record.isOverride ? "(Override)" : "(Calculated)"}
-                  </span>
-                </div>
-              </TableCell>
-
-              <TableCell className="text-center">
-                <Badge
-                  variant="outline"
-                  className={cn("font-medium px-2 py-0.5 whitespace-nowrap", getStatusColor(record.status))}
-                >
-                  <span className="mr-1.5">{getStatusIcon(record.status)}</span>
-                  {record.status}
-                </Badge>
-              </TableCell>
-
-              <TableCell className="text-center">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                  onClick={() => onEdit(record)}
-                >
-                  {record.status === "Paid Leave" ? <Eye className="h-4 w-4" /> : <Edit2 className="h-4 w-4" />}
-                </Button>
-              </TableCell>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="border-b-2 border-border hover:bg-muted/40">
+              {headerGroup.headers.map((header) => {
+                // Hacky way to inject the Header component which is a TableHead
+                // because TanStack usually expects the renderer to handle wrapping.
+                // Here colDef.header is a function that returns TableHead.
+                // We need to be careful with double wrapping.
+                const content = flexRender(header.column.columnDef.header, header.getContext())
+                return content ? <React.Fragment key={header.id}>{content}</React.Fragment> : null
+              })}
             </TableRow>
           ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                className={cn(
+                  "h-[60px] transition-colors border-b border-border",
+                  getRowBackground(row.original.status),
+                )}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <React.Fragment key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </React.Fragment>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={isBulkEditMode ? 9 : 8} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

@@ -11,6 +11,7 @@ import {
   FormMessage
 } from "@/components/ui/form"
 import { type SiteFormValues } from "@/lib/validations/site.schema"
+import { Info } from "lucide-react"
 
 export function BasicInfoTab() {
   const { control } = useFormContext<SiteFormValues>()
@@ -90,9 +91,7 @@ export function BasicInfoTab() {
 
       <div className="bg-muted/30 border border-border rounded-lg p-4 flex gap-4">
         <div className="p-2 bg-background rounded-full h-fit border border-border">
-          <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="I13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <Info className="w-5 h-5 text-muted-foreground" />
         </div>
         <div>
           <h4 className="text-sm font-semibold text-foreground">Important</h4>

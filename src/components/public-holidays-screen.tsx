@@ -7,6 +7,7 @@ import CreateCalendarModal from "@/components/holidays/create-calendar-modal"
 import AddHolidayModal from "@/components/holidays/add-holiday-modal"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import { format } from "date-fns"
 
 export interface Holiday {
   id: string
@@ -215,11 +216,7 @@ export default function PublicHolidaysScreen() {
           ...cal,
           holidays: [...cal.holidays, newHoliday],
           holidayCount: cal.holidays.length + 1,
-          lastModified: new Date().toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }),
+          lastModified: format(new Date(), "MMM d, yyyy"),
         }
       }
       return cal
@@ -243,11 +240,7 @@ export default function PublicHolidaysScreen() {
         return {
           ...cal,
           holidays: cal.holidays.map((h) => (h.id === editingHoliday.id ? { ...updatedHoliday, id: h.id } : h)),
-          lastModified: new Date().toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }),
+          lastModified: format(new Date(), "MMM d, yyyy"),
         }
       }
       return cal
@@ -268,11 +261,7 @@ export default function PublicHolidaysScreen() {
           ...cal,
           holidays: newHolidays,
           holidayCount: newHolidays.length,
-          lastModified: new Date().toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }),
+          lastModified: format(new Date(), "MMM d, yyyy"),
         }
       }
       return cal

@@ -18,6 +18,15 @@ import {
 import { getSitesAction, deleteSiteAction, type Site } from "@/lib/actions"
 import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 
 interface Pagination {
@@ -379,42 +388,75 @@ export function CompanySelectionScreen() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page <= 1}
-              className="gap-1"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </Button>
+          <div className="mt-8">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  {pagination.page > 1 ? (
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handlePageChange(pagination.page - 1)
+                      }}
+                    />
+                  ) : (
+                    <PaginationPrevious className="pointer-events-none opacity-50" />
+                  )}
+                </PaginationItem>
 
-            <div className="flex items-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={page === pagination.page ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handlePageChange(page)}
-                  className="w-10"
-                >
-                  {page}
-                </Button>
-              ))}
-            </div>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                  // Basic logic to show current, first, last, and window around current
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= pagination.page - 1 && page <= pagination.page + 1)
+                  ) {
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          href="#"
+                          isActive={page === pagination.page}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            handlePageChange(page)
+                          }}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  }
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page >= totalPages}
-              className="gap-1"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+                  if (
+                    (page === 2 && pagination.page > 3) ||
+                    (page === totalPages - 1 && pagination.page < totalPages - 2)
+                  ) {
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )
+                  }
+
+                  return null
+                })}
+
+                <PaginationItem>
+                  {pagination.page < totalPages ? (
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handlePageChange(pagination.page + 1)
+                      }}
+                    />
+                  ) : (
+                    <PaginationNext className="pointer-events-none opacity-50" />
+                  )}
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
 
