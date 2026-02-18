@@ -94,6 +94,26 @@ export function EmployeeSidebar() {
             {watch("status") || "Active"}
           </span>
         </div>
+
+        {/* Quick Actions */}
+        <div className="space-y-3">
+          <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest px-1">
+            Quick Actions
+          </h3>
+          <button
+            type="button"
+            onClick={() => {
+              const id = watch("employee_id")
+              window.location.href = `/clockings${id ? `?employeeId=${id}` : ""}`
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/20 transition-all group"
+          >
+            <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+              <Clock className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-semibold">View T&A Clockings</span>
+          </button>
+        </div>
       </div>
     </aside>
   )
