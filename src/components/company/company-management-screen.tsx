@@ -4,21 +4,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Trash2, ArrowLeft, Loader2, Building2, AlertCircle } from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-
 import { CompanySidebar } from "./company-sidebar"
 import { BasicInfoTab } from "./company-management-tabs/basic-info-tab"
 import { IntegrationsTab } from "./company-management-tabs/integrations-tab"
@@ -26,6 +13,8 @@ import { AdvancedConfigTab } from "./company-management-tabs/advanced-config-tab
 
 import { siteFormSchema, type SiteFormValues } from "@/lib/validations/site.schema"
 import { createSiteAction, updateSiteAction, deleteSiteAction } from "@/lib/actions/site.actions"
+import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
+import { showError, showSuccess } from "@/lib/toast"
 
 export function CompanyManagementScreen({
   siteId,
@@ -39,6 +28,7 @@ export function CompanyManagementScreen({
   const [activeTab, setActiveTab] = useState<"basic" | "integrations" | "advanced">("basic")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const methods = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
@@ -76,13 +66,13 @@ export function CompanyManagementScreen({
         : await createSiteAction(data)
 
       if (result.success) {
-        toast.success(isEdit ? "Company updated successfully" : "Company created successfully")
+        showSuccess(isEdit ? "Company updated successfully" : "Company created successfully")
         router.push("/")
       } else {
-        toast.error(result.message || `Failed to ${isEdit ? 'update' : 'create'} company`)
+        showError(result.message || `Failed to ${isEdit ? 'update' : 'create'} company`)
       }
     } catch (error) {
-      toast.error("An unexpected error occurred")
+      showError("An unexpected error occurred")
       console.error(error)
     } finally {
       setIsSubmitting(false)
@@ -95,13 +85,13 @@ export function CompanyManagementScreen({
     try {
       const result = await deleteSiteAction(siteId)
       if (result.success) {
-        toast.success("Company deleted successfully")
+        showSuccess("Company deleted successfully")
         router.push("/")
       } else {
-        toast.error(result.message || "Failed to delete company")
+        showError(result.message || "Failed to delete company")
       }
     } catch (error) {
-      toast.error("An unexpected error occurred")
+      showError("An unexpected error occurred")
       console.error(error)
     } finally {
       setIsDeleting(false)
@@ -141,48 +131,31 @@ export function CompanyManagementScreen({
               </div>
               <div className="flex items-center gap-3">
                 {isEdit && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        disabled={isSubmitting || isDeleting}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
+                  <>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      disabled={isSubmitting || isDeleting}
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                    <DeleteConfirmationDialog
+                      open={isDeleteDialogOpen}
+                      onOpenChange={setIsDeleteDialogOpen}
+                      description={
+                        <>
                           This action cannot be undone. This will permanently delete the
                           company <strong> {initialData?.name}</strong> and all associated data.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={(e) => {
-                            e.preventDefault()
-                            onDelete()
-                          }}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          disabled={isDeleting}
-                        >
-                          {isDeleting ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Deleting...
-                            </>
-                          ) : (
-                            "Permanently Delete"
-                          )}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                        </>
+                      }
+                      onConfirm={onDelete}
+                      isDeleting={isDeleting}
+                      confirmText="Permanently Delete"
+                    />
+                  </>
                 )}
                 <Button
                   type="button"

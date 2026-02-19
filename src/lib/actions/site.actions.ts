@@ -81,9 +81,8 @@ export async function getSitesAction(params: GetSitesParams = {}) {
 
   const { page = 1, limit = 6 } = params
 
-  const response = await serverApi.get<Site[]>(API_ENDPOINTS.SITES.BASE, {
+  const response = await serverApi.post<Site[]>(API_ENDPOINTS.SITES.BASE, { page, limit }, {
     token,
-    params: { page, limit },
   })
 
   return response
@@ -104,7 +103,7 @@ export async function getSiteByIdAction(id: string | number) {
     }
   }
 
-  const response = await serverApi.get<Site>(API_ENDPOINTS.SITES.BY_ID(String(id)), {
+  const response = await serverApi.post<Site>(API_ENDPOINTS.SITES.BY_ID(String(id)), { site_id: id }, {
     token,
   })
 
@@ -176,8 +175,8 @@ export async function updateSiteAction(id: string | number, formData: SiteFormVa
   }
 
   const response = await serverApi.patch<Site>(
-    API_ENDPOINTS.SITES.BY_ID(String(id)),
-    parseResult.data,
+    API_ENDPOINTS.SITES.UPDATE(String(id)),
+    { ...parseResult.data, site_id: id },
     { token }
   )
 
@@ -200,7 +199,7 @@ export async function deleteSiteAction(id: string | number) {
   }
 
   const response = await serverApi.delete<null>(
-    API_ENDPOINTS.SITES.BY_ID(String(id)),
+    API_ENDPOINTS.SITES.DELETE(String(id)),
     { token }
   )
 

@@ -220,6 +220,7 @@ export const serverApi = {
   ): Promise<ServerApiResponse<T> | ServerApiError> {
     try {
       const url = buildUrl(endpoint, options?.params)
+      console.log("Patch", url, body)
       const headers = buildHeaders(options)
 
       const response = await fetch(url, {
@@ -257,6 +258,7 @@ export const serverApi = {
       const response = await fetch(url, {
         method: "DELETE",
         headers,
+        body: JSON.stringify({}),
         cache: "no-store",
       })
 

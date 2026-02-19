@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Edit, Trash2, Clock, DollarSign, CalendarDays, Heart, Users } from "lucide-react"
 import { AbsentCodeModal } from "./absent-code-modal"
+import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
+import { showError, showSuccess } from "@/lib/toast"
 
 export type AbsentCode = {
   id: string
@@ -76,6 +78,7 @@ export function AbsentCodesScreen() {
   const [codes, setCodes] = useState<AbsentCode[]>(defaultCodes)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCode, setEditingCode] = useState<AbsentCode | null>(null)
+  const [codeToDelete, setCodeToDelete] = useState<AbsentCode | null>(null)
 
   const handleAddCode = () => {
     setEditingCode(null)
@@ -90,11 +93,17 @@ export function AbsentCodesScreen() {
   const handleDeleteCode = (id: string) => {
     const code = codes.find((c) => c.id === id)
     if (code?.isDefault) {
-      alert("Cannot delete default codes")
+      showError("Cannot delete default codes")
       return
     }
-    if (confirm("Are you sure you want to delete this absence code?")) {
-      setCodes(codes.filter((c) => c.id !== id))
+    setCodeToDelete(code || null)
+  }
+
+  const confirmDeleteCode = () => {
+    if (codeToDelete) {
+      setCodes(codes.filter((c) => c.id !== codeToDelete.id))
+      showSuccess("Absent code deleted successfully")
+      setCodeToDelete(null)
     }
   }
 
@@ -118,6 +127,7 @@ export function AbsentCodesScreen() {
     }
     setIsModalOpen(false)
     setEditingCode(null)
+    showSuccess(editingCode ? "Absent code updated successfully" : "Absent code created successfully")
   }
 
   const paidCodes = codes.filter((c) => c.isPaid)
@@ -300,6 +310,20 @@ export function AbsentCodesScreen() {
         }}
         onSave={handleSaveCode}
         editingCode={editingCode}
+      />
+
+      <DeleteConfirmationDialog
+        open={!!codeToDelete}
+        onOpenChange={(open) => !open && setCodeToDelete(null)}
+        description={
+          <>
+            Are you sure you want to delete the absent code <strong>{codeToDelete?.code}</strong>?
+            This action cannot be undone.
+          </>
+        }
+        onConfirm={confirmDeleteCode}
+        isDeleting={false}
+        confirmText="Delete Code"
       />
     </div>
   )

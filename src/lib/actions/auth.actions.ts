@@ -138,7 +138,7 @@ export async function getCurrentUserAction() {
     }
   }
 
-  const response = await serverApi.get<User>(API_ENDPOINTS.AUTH.ME, { token })
+  const response = await serverApi.post<User>(API_ENDPOINTS.AUTH.ME, {}, { token })
 
   return response
 }

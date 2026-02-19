@@ -91,12 +91,10 @@ export async function getEmployeesAction(
 
   const { page = 1, limit = 10 } = params
 
-  const response = await serverApi.get<Employee[]>(
-    API_ENDPOINTS.EMPLOYEE.BY_SITE(String(siteId)),
-    {
-      token,
-      params: { page, limit },
-    }
+  const response = await serverApi.post<Employee[]>(
+    API_ENDPOINTS.EMPLOYEE.BASE,
+    { site_id: siteId, page, limit },
+    { token }
   )
 
   return response

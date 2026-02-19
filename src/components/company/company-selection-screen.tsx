@@ -5,20 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, ChevronRight, Plus, ChevronLeft, Loader2, Users, Layers, Hash, Settings2, Trash2 } from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { getSitesAction, deleteSiteAction, type Site } from "@/lib/actions"
-import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
 import { StandardPagination } from "@/components/ui/pagination"
+import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
+import { showError, showSuccess } from "@/lib/toast"
 
 interface Pagination {
   total: number
@@ -160,14 +151,14 @@ export function CompanySelectionScreen() {
     try {
       const result = await deleteSiteAction(siteToDelete.site_id)
       if (result.success) {
-        toast.success("Company deleted successfully")
-        setSites(sites.filter(s => s.site_id !== siteToDelete.site_id))
+        showSuccess("Company deleted successfully")
         setSiteToDelete(null)
+        await fetchSites(currentPage, limit)
       } else {
-        toast.error(result.message || "Failed to delete company")
+        showError(result.message || "Failed to delete company")
       }
     } catch (err) {
-      toast.error("An unexpected error occurred")
+      showError("An unexpected error occurred")
       console.error(err)
     } finally {
       setIsDeleting(false)
@@ -339,43 +330,18 @@ export function CompanySelectionScreen() {
         )}
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!siteToDelete} onOpenChange={(open) => !open && setSiteToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete{" "}
-                <strong>{siteToDelete?.name}</strong> and all associated data.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setSiteToDelete(null)}
-                disabled={isDeleting}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={(e) => {
-                  e.preventDefault()
-                  handleDeleteSite()
-                }}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  "Delete Company"
-                )}
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <DeleteConfirmationDialog
+          open={!!siteToDelete}
+          onOpenChange={(open) => !open && setSiteToDelete(null)}
+          description={
+            <>
+              This action cannot be undone. This will permanently delete{" "}
+              <strong>{siteToDelete?.name}</strong> and all associated data.
+            </>
+          }
+          onConfirm={handleDeleteSite}
+          isDeleting={isDeleting}
+        />
 
         {/* Pagination */}
         <div className="mt-8">

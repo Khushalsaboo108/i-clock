@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { EmployeeSidebar } from "@/components/employ/employ-menagement-tab/employee-sidebar"
@@ -15,6 +14,7 @@ import { DisciplinaryRecordsTab } from "@/components/employ/employ-menagement-ta
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { employeeFormSchema, type EmployeeFormValues } from "@/lib/validations/employee.schema"
 import { createEmployeeAction } from "@/lib/actions/employee.actions"
+import { showError, showSuccess } from "@/lib/toast"
 
 export function EmployeeManagementScreen({
   employeeId,
@@ -114,13 +114,13 @@ export function EmployeeManagementScreen({
     try {
       const result = await createEmployeeAction(data)
       if (result.success) {
-        toast.success("Employee created successfully")
+        showSuccess("Employee created successfully")
         handleBackClick()
       } else {
-        toast.error(result.message || "Failed to create employee")
+        showError(result.message || "Failed to create employee")
       }
     } catch (error) {
-      toast.error("An unexpected error occurred")
+      showError("An unexpected error occurred")
       console.error(error)
     } finally {
       setIsSubmitting(false)

@@ -59,12 +59,13 @@ export const API_ENDPOINTS = {
     ME: "/profile",
   },
   EMPLOYEE: {
-    BASE: "/employee",
-    BY_SITE: (siteId: string) => `/employee/${siteId}`,
+    BASE: "/employee/get",
   },
   SITES: {
-    BASE: "/site",
-    BY_ID: (id: string) => `/site/${id}`,
+    BASE: "/site/get",
+    BY_ID: (id: string) => `/site/single-site`,
+    UPDATE: (id: string) => `/site/${id}`,
+    DELETE: (id: string) => `/site/${id}`,
   },
 } as const
 
