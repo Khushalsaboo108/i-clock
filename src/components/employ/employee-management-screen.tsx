@@ -68,15 +68,11 @@ export function EmployeeManagementScreen({
         birthday_notifications: true,
       },
       clocking_config: {
-        method: "default",
-        saved_as_received: true,
-        smart_detection: {
-          alternating_mode: false,
-          first_clock_is_in: true,
-          new_shift_threshold: {
-            hours: 4,
-            minutes: 0,
-          },
+        source: "work_rule",
+        mode: "directional",
+        new_shift_threshold: {
+          hours: 4,
+          minutes: 0,
         },
       },
       compliance_documents: {

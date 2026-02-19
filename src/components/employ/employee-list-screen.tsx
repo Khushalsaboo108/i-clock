@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Plus, Search, ChevronRight, ChevronLeft, Users, Loader2, ArrowUpDown } from "lucide-react"
+import { ArrowLeft, Plus, Search, ChevronRight, ChevronLeft, Users, Loader2, ArrowUpDown, Clock } from "lucide-react"
 import { getEmployeesAction, getSiteByIdAction, type Employee, type Site } from "@/lib/actions"
 import { cn } from "@/lib/utils"
 import { StandardPagination } from "@/components/ui/pagination"
@@ -234,7 +234,19 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
         id: "actions",
         header: () => <div className="text-right">Action</div>,
         cell: ({ row }) => (
-          <div className="text-right">
+          <div className="text-right flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation()
+                router.push(`/clockings?employeeId=${row.original.employee_id}`)
+              }}
+              className="rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+              title="View Clockings"
+            >
+              <Clock className="w-4 h-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"

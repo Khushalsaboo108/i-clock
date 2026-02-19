@@ -135,3 +135,28 @@ export async function createEmployeeAction(formData: EmployeeFormValues) {
 
   return response
 }
+
+/**
+ * Get a specific employee by ID
+ */
+export async function getEmployeeByIdAction(employeeId: string | number) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get("access_token")?.value
+
+  if (!token) {
+    return {
+      success: false,
+      message: "Not authenticated",
+      data: null,
+    }
+  }
+
+  const response = await serverApi.get<Employee>(
+    `/employee/${employeeId}`,
+    { token }
+  )
+
+  console.log(`[getEmployeeByIdAction] Fetching employee ${employeeId}:`, response)
+
+  return response
+}

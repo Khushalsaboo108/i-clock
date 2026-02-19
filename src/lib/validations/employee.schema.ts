@@ -27,18 +27,12 @@ export const employeeFormSchema = z.object({
   })).optional().default([]),
 
   clocking_config: z.object({
-    method: z.enum(["default", "override"]).default("default"),
-    override_type: z.enum(["smart", "manual", "biometric"]).optional().default("smart"),
-    directional_clocking: z.boolean().default(true),
-    saved_as_received: z.boolean().default(false),
-    smart_detection: z.object({
-      first_clock_is_in: z.boolean().default(true),
-      alternating_mode: z.boolean().default(true),
-      new_shift_threshold: z.object({
-        hours: z.coerce.number().min(0).max(23).default(4),
-        minutes: z.coerce.number().min(0).max(59).default(0),
-      })
-    })
+    source: z.enum(["work_rule", "employee_override"]).default("work_rule"),
+    mode: z.enum(["directional", "alternating"]).default("directional"),
+    new_shift_threshold: z.object({
+      hours: z.coerce.number().min(0).max(23).default(4),
+      minutes: z.coerce.number().min(0).max(59).default(0),
+    }).optional()
   }),
 
   personal_details: z.object({
