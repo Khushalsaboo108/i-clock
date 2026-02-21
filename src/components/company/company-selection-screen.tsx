@@ -4,9 +4,10 @@ import { useEffect, useState, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Building2, ChevronRight, Plus, ChevronLeft, Loader2, Users, Layers, Hash, Settings2, Trash2 } from "lucide-react"
+import { Building2, ChevronRight, Plus, ChevronLeft, Loader2, Users, Layers, Hash, Settings2, Trash2, Search } from "lucide-react"
 import { getSitesAction, deleteSiteAction, type Site } from "@/lib/actions"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Input } from "@/components/ui/input"
 import { StandardPagination } from "@/components/ui/pagination"
 import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog"
 import { showError, showSuccess } from "@/lib/toast"
@@ -78,17 +79,19 @@ export function CompanySelectionScreen() {
   const [error, setError] = useState<string | null>(null)
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
 
   // Get page from URL or default to 1
   const currentPage = parseInt(searchParams.get("page") || "1", 10)
   const limit = parseInt(searchParams.get("limit") || "6", 10)
 
-  const fetchSites = useCallback(async (page: number, limit: number) => {
+  const fetchSites = useCallback(async (page: number, limit: number, siteName?: string) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const response = await getSitesAction({ page, limit })
+      const response = await getSitesAction({ page, limit, site_name: siteName })
 
       if (response.success && response.data) {
         // Handle the API response - data is the array of sites
@@ -107,7 +110,7 @@ export function CompanySelectionScreen() {
           })
         }
 
-        // Scroll to top after data is fetched (only for pagination, not initial load)
+        // Scroll to top after data is fetched (only for pagination or search, not initial load)
         if (!isInitialLoad) {
           window.scrollTo({ top: 0, behavior: "smooth" })
         }
@@ -123,9 +126,29 @@ export function CompanySelectionScreen() {
     }
   }, [])
 
+  // Debounce search term
   useEffect(() => {
-    fetchSites(currentPage, limit)
-  }, [currentPage, limit, fetchSites])
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // Reset page to 1 when search term changes
+  useEffect(() => {
+    // Only reset page if we have a search term and we're not already on page 1
+    // This avoids an infinite loop where router.push triggers searchParams update
+    if (debouncedSearchTerm && currentPage !== 1) {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set("page", "1")
+      router.push(`/?${params.toString()}`, { scroll: false })
+    }
+  }, [debouncedSearchTerm, currentPage, router, searchParams])
+
+  useEffect(() => {
+    fetchSites(currentPage, limit, debouncedSearchTerm)
+  }, [currentPage, limit, debouncedSearchTerm, fetchSites])
 
   const handleSelectCompany = (siteId: number) => {
     router.push(`/company/${siteId}/employees`)
@@ -216,6 +239,19 @@ export function CompanySelectionScreen() {
           </div>
         </div>
 
+        {/* Search */}
+        <div className="mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search companies by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-11"
+            />
+          </div>
+        </div>
+
         {/* Section Title */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -223,7 +259,9 @@ export function CompanySelectionScreen() {
             <p className="text-sm text-muted-foreground mt-1">
               {sites.length > 0
                 ? `Showing ${sites.length} of ${pagination.total} companies`
-                : "No companies loaded yet"}
+                : searchTerm
+                  ? "No companies found matching your search"
+                  : "No companies loaded yet"}
             </p>
           </div>
           <Button className="gap-2" onClick={handleAddCompany}>

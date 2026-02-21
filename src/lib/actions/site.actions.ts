@@ -60,6 +60,7 @@ export interface SitesApiResponse {
 interface GetSitesParams {
   page?: number
   limit?: number
+  site_name?: string
 }
 
 /**
@@ -79,9 +80,9 @@ export async function getSitesAction(params: GetSitesParams = {}) {
     }
   }
 
-  const { page = 1, limit = 6 } = params
+  const { page = 1, limit = 6, site_name } = params
 
-  const response = await serverApi.post<Site[]>(API_ENDPOINTS.SITES.BASE, { page, limit }, {
+  const response = await serverApi.post<Site[]>(API_ENDPOINTS.SITES.BASE, { page, limit, site_name }, {
     token,
   })
 
