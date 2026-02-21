@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -113,13 +115,18 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
         const employeesData = Array.isArray(response.data) ? response.data : []
         setEmployees(employeesData)
 
-        // Get pagination from response
-        const paginationData = (response as { pagination?: Pagination }).pagination
-        if (paginationData) {
-          setPagination(paginationData)
-        } else {
-          setPagination({ total: employeesData.length, page, limit })
-        }
+        const res = response as any;
+        const paginationData = res.pagination || res.meta || {};
+
+        const total = paginationData.total ?? paginationData.total_count ?? res.total ?? res.total_count ?? employeesData.length;
+        const pg = paginationData.page ?? paginationData.current_page ?? res.page ?? res.current_page ?? page;
+        const lim = paginationData.limit ?? paginationData.per_page ?? res.limit ?? res.per_page ?? limit;
+
+        setPagination({
+          total: Number(total),
+          page: Number(pg),
+          limit: Number(lim) || 10
+        });
       } else {
         setError(response.message || "Failed to fetch employees")
       }
@@ -151,14 +158,21 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
     router.push(`/company/${companyId}/employees?${params.toString()}`, { scroll: false })
   }
 
-  const totalPages = Math.ceil(pagination.total / pagination.limit)
+  const handleLimitChange = (newLimit: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("page", "1")
+    params.set("limit", newLimit.toString())
+    router.push(`/company/${companyId}/employees?${params.toString()}`, { scroll: false })
+  }
+
+  const totalPages = Math.ceil(pagination.total / (pagination.limit || 10))
 
   // Client-side search filtering
   const filteredData = useMemo(() => {
     return employees.filter(
       (emp) =>
         emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.pin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.pin.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
         (emp.employee_code && emp.employee_code.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase())),
     )
@@ -430,15 +444,22 @@ export function EmployeeListScreen({ companyId }: { companyId: string }) {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {(totalPages > 1 || pagination.total > 0) && (
               <div className="flex items-center justify-between mt-6">
                 <p className="text-sm text-muted-foreground">
-                  Page {pagination.page} of {totalPages} • {pagination.total} total employees
+                  {pagination.total > 0 ? (
+                    `Page ${pagination.page} of ${totalPages} • ${pagination.total} total employees`
+                  ) : (
+                    "No employees found"
+                  )}
                 </p>
                 <StandardPagination
                   currentPage={currentPage}
                   totalPages={totalPages}
+                  total={pagination.total}
                   onPageChange={handlePageChange}
+                  onLimitChange={handleLimitChange}
+                  limit={pagination.limit}
                   isLoading={isLoading}
                 />
               </div>

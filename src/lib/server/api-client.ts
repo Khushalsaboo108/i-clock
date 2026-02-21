@@ -75,6 +75,7 @@ async function handleError(response: Response): Promise<ServerApiError> {
 
   try {
     const data = await response.json()
+    console.log("<< [API ERROR]", response.status, data)
     error = {
       success: false,
       message: data.message || "An unexpected error occurred",
@@ -83,6 +84,7 @@ async function handleError(response: Response): Promise<ServerApiError> {
       statusCode: response.status,
     }
   } catch {
+    console.log("<< [API ERROR]", response.status, response.statusText)
     error = {
       success: false,
       message: response.statusText || "An unexpected error occurred",
@@ -105,8 +107,9 @@ export const serverApi = {
     endpoint: string,
     options?: RequestOptions
   ): Promise<ServerApiResponse<T> | ServerApiError> {
+    const url = buildUrl(endpoint, options?.params)
+    console.log(">> [API REQ] GET", url)
     try {
-      const url = buildUrl(endpoint, options?.params)
       const headers = buildHeaders(options)
 
       const response = await fetch(url, {
@@ -119,8 +122,11 @@ export const serverApi = {
         return await handleError(response)
       }
 
-      return await response.json()
+      const data = await response.json()
+      console.log("<< [API RES] GET", url, data)
+      return data
     } catch (error) {
+      console.log("!! [API ERROR] GET", url, error)
       return {
         success: false,
         message: error instanceof Error ? error.message : "Network error",
@@ -137,8 +143,9 @@ export const serverApi = {
     body?: unknown,
     options?: RequestOptions
   ): Promise<ServerApiResponse<T> | ServerApiError> {
+    const url = buildUrl(endpoint, options?.params)
+    console.log(">> [API REQ] POST", url, body)
     try {
-      const url = buildUrl(endpoint, options?.params)
       const headers = buildHeaders(options)
 
       const response = await fetch(url, {
@@ -153,6 +160,7 @@ export const serverApi = {
       }
 
       const data = await response.json()
+      console.log("<< [API RES] POST", url, data)
       const setCookie = response.headers.get("set-cookie")
 
       let refreshToken: string | null = null
@@ -169,6 +177,7 @@ export const serverApi = {
         refreshToken,
       }
     } catch (error) {
+      console.log("!! [API ERROR] POST", url, error)
       return {
         success: false,
         message: error instanceof Error ? error.message : "Network error",
@@ -185,8 +194,9 @@ export const serverApi = {
     body?: unknown,
     options?: RequestOptions
   ): Promise<ServerApiResponse<T> | ServerApiError> {
+    const url = buildUrl(endpoint, options?.params)
+    console.log(">> [API REQ] PUT", url, body)
     try {
-      const url = buildUrl(endpoint, options?.params)
       const headers = buildHeaders(options)
 
       const response = await fetch(url, {
@@ -200,8 +210,11 @@ export const serverApi = {
         return await handleError(response)
       }
 
-      return await response.json()
+      const data = await response.json()
+      console.log("<< [API RES] PUT", url, data)
+      return data
     } catch (error) {
+      console.log("!! [API ERROR] PUT", url, error)
       return {
         success: false,
         message: error instanceof Error ? error.message : "Network error",
@@ -218,9 +231,9 @@ export const serverApi = {
     body?: unknown,
     options?: RequestOptions
   ): Promise<ServerApiResponse<T> | ServerApiError> {
+    const url = buildUrl(endpoint, options?.params)
+    console.log(">> [API REQ] PATCH", url, body)
     try {
-      const url = buildUrl(endpoint, options?.params)
-      console.log("Patch", url, body)
       const headers = buildHeaders(options)
 
       const response = await fetch(url, {
@@ -234,8 +247,11 @@ export const serverApi = {
         return await handleError(response)
       }
 
-      return await response.json()
+      const data = await response.json()
+      console.log("<< [API RES] PATCH", url, data)
+      return data
     } catch (error) {
+      console.log("!! [API ERROR] PATCH", url, error)
       return {
         success: false,
         message: error instanceof Error ? error.message : "Network error",
@@ -251,8 +267,9 @@ export const serverApi = {
     endpoint: string,
     options?: RequestOptions
   ): Promise<ServerApiResponse<T> | ServerApiError> {
+    const url = buildUrl(endpoint, options?.params)
+    console.log(">> [API REQ] DELETE", url)
     try {
-      const url = buildUrl(endpoint, options?.params)
       const headers = buildHeaders(options)
 
       const response = await fetch(url, {
@@ -266,8 +283,11 @@ export const serverApi = {
         return await handleError(response)
       }
 
-      return await response.json()
+      const data = await response.json()
+      console.log("<< [API RES] DELETE", url, data)
+      return data
     } catch (error) {
+      console.log("!! [API ERROR] DELETE", url, error)
       return {
         success: false,
         message: error instanceof Error ? error.message : "Network error",

@@ -60,9 +60,14 @@ export const API_ENDPOINTS = {
   },
   EMPLOYEE: {
     BASE: "/employee/get",
+    CREATE: "/employee/create",
+    BY_ID: "/employee/single-employee",
+    UPDATE: (id: string) => `/employee/${id}`,
+    DELETE: (id: string) => `/employee/${id}`,
   },
   SITES: {
     BASE: "/site/get",
+    CREATE: "/site/create",
     BY_ID: (id: string) => `/site/single-site`,
     UPDATE: (id: string) => `/site/${id}`,
     DELETE: (id: string) => `/site/${id}`,

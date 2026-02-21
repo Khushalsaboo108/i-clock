@@ -15,11 +15,20 @@ export const employeeFormSchema = z.object({
     .min(3, "Username must be at least 3 characters")
     .max(30, "Username must not exceed 30 characters")
     .regex(/^[a-z0-9._-]+$/, "Only lowercase letters, numbers, and . _ - are allowed"),
-  pin: z.string().min(1, "PIN is required").max(50),
-  card_number: z.string().max(50).optional().default(""),
+  pin: z.coerce.number().int(),
+  card: z.coerce.number().int(),
   employment_date: z.string().min(1, "Employment date is required"),
-  public_holiday_calendar_id: z.string().min(1, "Holiday calendar is required").default("standard"),
-  work_rules_id: z.string().min(1, "Work Rules choice is required").default("standard"),
+  public_holiday_calendar_id: z.coerce.number().int().default(1),
+  work_rules_id: z.coerce.number().int().default(1),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  phone: z.coerce.number().optional(),
+  mobile_number: z.coerce.number().optional(),
+  status: z.enum(["Active", "Inactive"]).default("Active"),
+  permanent_user: z.boolean().default(true),
+  mobile: z.boolean().default(true),
+  access_code_generator: z.enum(["Enable", "Disable"]).default("Disable"),
+  password: z.coerce.number().optional(),
+  employee_code: z.string().optional().default(""),
 
   filters: z.array(z.object({
     group: z.string(),
@@ -33,36 +42,75 @@ export const employeeFormSchema = z.object({
       hours: z.coerce.number().min(0).max(23).default(4),
       minutes: z.coerce.number().min(0).max(59).default(0),
     }).optional()
-  }),
+  }).optional(),
 
   personal_details: z.object({
     photo_url: z.string().optional().default(""),
-    photo_size_kb: z.number().max(50, "Photo must not exceed 50kb").optional(),
     dob: z.string().optional(),
-    sex: z.enum(["M", "F", "Other"]).default("Other"),
-    marital_status: z.string().optional().default(""),
+    gender: z.enum(["M", "F", "Other"], { required_error: "Sex is required" }),
+    marital_status: z.string().min(1, "Marital status is required"),
     id_number: z.string().max(50).optional().default(""),
-    contact_number: z.string().max(20).optional().default(""),
+    phone: z.coerce.number().min(1, "Phone number is required"),
     address: z.object({
-      street: z.string().max(255).optional().default(""),
+      street: z.string().min(1, "Street is required").max(255),
       suburb: z.string().max(100).optional().default(""),
-      city: z.string().max(100).optional().default(""),
-      postal_code: z.string().max(20).optional().default(""),
+      city: z.string().min(1, "City is required").max(100),
+      postal_code: z.coerce.number().min(1, "Postal code is required"),
     }),
     emergency_contact: z.object({
-      person: z.string().max(100).optional().default(""),
-      relationship: z.string().max(50).optional().default(""),
-      number: z.string().max(20).optional().default(""),
+      person: z.string().min(1, "Emergency person is required").max(100),
+      relationship: z.string().min(1, "Relationship is required").max(50),
+      number: z.coerce.number().min(1, "Emergency number is required"),
     }),
     banking: z.object({
-      bank_name: z.string().max(100).optional().default(""),
-      account_type: z.string().max(50).optional().default(""),
-      account_number: z.string().max(50).optional().default(""),
-      routing_code: z.string().max(50).optional().default(""),
+      bank_name: z.string().min(1, "Bank name is required").max(100),
+      account_type: z.string().min(1, "Account type is required").max(50),
+      account_number: z.coerce.number().min(1, "Account number is required"),
+      routing_code: z.string().min(1, "Routing code is required").max(50),
     }),
-    notes: z.string().max(5000).optional().default(""),
     birthday_notifications: z.boolean().default(true),
   }),
+
+  leave_balance: z.object({
+    sick_leave_total: z.coerce.number().default(0),
+    sick_leave_taken: z.coerce.number().default(0),
+    sick_leave_paid: z.boolean().default(true),
+    sick_leave_remaining: z.coerce.number().default(0),
+    family_leave_total: z.coerce.number().default(0),
+    family_leave_taken: z.coerce.number().default(0),
+    family_leave_paid: z.boolean().default(true),
+    family_leave_remaining: z.coerce.number().default(0),
+    casual_leave_total: z.coerce.number().default(0),
+    casual_leave_taken: z.coerce.number().default(0),
+    casual_leave_paid: z.boolean().default(false),
+    casual_leave_remaining: z.coerce.number().default(0),
+  }).optional().default({
+    sick_leave_total: 0, sick_leave_taken: 0, sick_leave_paid: true, sick_leave_remaining: 0,
+    family_leave_total: 0, family_leave_taken: 0, family_leave_paid: true, family_leave_remaining: 0,
+    casual_leave_total: 0, casual_leave_taken: 0, casual_leave_paid: false, casual_leave_remaining: 0
+  }),
+
+  salary: z.object({
+    base_salary: z.coerce.number().default(0),
+    hourly_rate: z.coerce.number().default(0),
+    monthly_salary: z.coerce.number().default(0),
+    currency: z.string().nullable().optional().default("USD").transform(v => v ?? "USD"),
+    pay_frequency: z.string().nullable().optional().default("Monthly").transform(v => v ?? "Monthly"),
+    bank_name: z.string().nullable().optional().default("").transform(v => v ?? ""),
+    account_type: z.string().nullable().optional().default("Current").transform(v => v ?? "Current"),
+    account_number: z.coerce.number().optional(),
+    routing_code: z.string().nullable().optional().default("").transform(v => v ?? ""),
+    is_active: z.boolean().default(true),
+    effective_from: z.string().nullable().optional().default("").transform(v => v ?? ""),
+  }).optional().default({
+    base_salary: 0, hourly_rate: 0, monthly_salary: 0, currency: "USD", pay_frequency: "Monthly",
+    bank_name: "", account_type: "Current", is_active: true
+  }),
+
+  departments: z.array(z.object({
+    department_id: z.coerce.number().int(),
+    is_primary: z.boolean()
+  })).optional().default([]),
 
   compliance_documents: z.object({
     medical: z.array(z.object({
@@ -72,11 +120,11 @@ export const employeeFormSchema = z.object({
       notify_user: z.boolean().default(true),
     })).optional().default([]),
     drivers_license: z.object({
-      code: z.string().optional().default(""),
-      number: z.string().optional().default(""),
-      type: z.string().optional().default(""),
-      issued_date: z.string().optional(),
-      expiry_date: z.string().optional(),
+      code: z.string().nullable().optional().default("").transform(v => v ?? ""),
+      number: z.string().nullable().optional().default("").transform(v => v ?? ""),
+      type: z.string().nullable().optional().default("").transform(v => v ?? ""),
+      issued_date: z.string().nullable().optional().transform(v => v ?? ""),
+      expiry_date: z.string().nullable().optional().transform(v => v ?? ""),
       notify_user: z.boolean().default(true),
     }).nullable().optional().default(null),
     certificates: z.array(z.object({
@@ -87,49 +135,32 @@ export const employeeFormSchema = z.object({
       description: z.string().optional().default(""),
       notify_user: z.boolean().default(true),
     })).optional().default([]),
-  }),
+  }).optional().default({}),
 
   disciplinary_records: z.array(z.object({
-    offense_type: z.string(),
-    notes: z.string(),
-    effective_until: z.string(),
-    times_reported: z.coerce.number().min(0).default(0),
+    offense_type: z.string().nullable().optional().default("").transform(v => v ?? ""),
+    notes: z.string().nullable().optional().default("").transform(v => v ?? ""),
+    effective_until: z.string().nullable().optional().default("").transform(v => v ?? ""),
+    times_reported: z.preprocess((val) => {
+      if (val === "" || val === null || val === undefined) return 0;
+      const num = Number(val);
+      return isNaN(num) ? 0 : num;
+    }, z.number().min(0).default(0)),
     status: z.enum(["Active", "Resolved"]).default("Active"),
   })).optional().default([]),
 
-  // System/Other legacy fields (keeping for compatibility but might wrap later)
+  // System fields
   reader_pin: z.string().max(50).optional().default(""),
   category_id: z.coerce.number().int().min(0).default(0),
-  sbu_category_id: z.coerce.number().int().min(0).default(0),
+  sub_category_id: z.coerce.number().int().min(0).default(0),
   property_number: z.string().max(50).optional().default(""),
   vehicle_reg_no: z.string().max(20).optional().default(""),
-  permanent_user: z.boolean().default(true),
-  mobile: z.boolean().default(true),
-  password: z.string().min(6, "Password must be at least 6 characters").max(50).default(""),
-  access_code_generator: z.enum(["Enable", "Disable"]).default("Disable"),
   access_group: z.coerce.number().int().min(0).optional().default(0),
   ignore_move_copy: z.boolean().default(false),
   priv: z.boolean().default(false),
-  status: z.enum(["Active", "Inactive"]).default("Active"),
   alias_employee: z.string().max(50).optional().default(""),
   nif_dni: z.string().max(50).optional().default(""),
   work_center_id: z.coerce.number().int().min(0).default(0),
-}).transform((data) => {
-  const { first_name, last_name, ...rest } = data
-  return {
-    ...rest,
-    name: `${first_name} ${last_name}`.trim().toUpperCase(), // Sync with 'name' field
-    username: (rest.username || `${first_name}_${last_name}`).toLowerCase().trim().replace(/\s+/g, "_").replace(/[^a-z0-9._-]/g, ""),
-    permanent_user: rest.permanent_user ? 'Yes' : 'No', // Sync with legacy string boolean
-    mobile: rest.mobile ? 'Yes' : 'No', // Sync with legacy string boolean
-    ignore_move_copy: rest.ignore_move_copy ? 'No' : 'No', // Example says 'No'
-    is_antipass: 'No', // Default for legacy
-    visit_multi_times: 'No', // Default for legacy
-    priv: rest.priv ? 1 : 0, // Sync with legacy 0/1
-    emp_type: '1', // Default for legacy
-    upgrade: 1, // Default for legacy
-    agri_card: 1, // Default for legacy
-  }
 })
 
 export type EmployeeFormValues = z.input<typeof employeeFormSchema>

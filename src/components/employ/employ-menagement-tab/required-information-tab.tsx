@@ -109,12 +109,25 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
             {errors.pin && <p className="text-xs text-red-500 mt-1">{errors.pin.message}</p>}
           </div>
           <div>
+            <Label htmlFor="email" className="text-sm font-medium text-muted-foreground mb-2 block">
+              Email Address
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              {...register("email")}
+              className={`h-10 ${errors.email ? "border-red-500" : ""}`}
+              placeholder="email@example.com"
+            />
+            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+          </div>
+          <div>
             <Label htmlFor="card" className="text-sm font-medium text-muted-foreground mb-2 block">
               Card Number
             </Label>
             <Input
               id="card"
-              {...register("card_number")}
+              {...register("card")}
               className="h-10"
               placeholder="Card ID (optional)"
             />
@@ -221,13 +234,13 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
             />
           </div>
           <div>
-            <Label htmlFor="sbu_category_id" className="text-sm font-medium text-muted-foreground mb-2 block">
-              SBU Category ID
+            <Label htmlFor="sub_category_id" className="text-sm font-medium text-muted-foreground mb-2 block">
+              Sub Category ID
             </Label>
             <Input
-              id="sbu_category_id"
+              id="sub_category_id"
               type="number"
-              {...register("sbu_category_id")}
+              {...register("sub_category_id")}
               className="h-10"
             />
           </div>
@@ -306,17 +319,17 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
             </Label>
             <div className="flex items-center gap-3">
               <Select
-                value={watch("work_rules_id")}
-                onValueChange={(val) => setValue("work_rules_id", val)}
+                value={String(watch("work_rules_id"))}
+                onValueChange={(val) => setValue("work_rules_id", parseInt(val))}
               >
                 <SelectTrigger id="work_rules_id" className="h-10 flex-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="standard">Standard 40hr Week</SelectItem>
-                  <SelectItem value="flexible">Flexible Hours</SelectItem>
-                  <SelectItem value="shift">Shift Work</SelectItem>
-                  <SelectItem value="admin">Admin Special</SelectItem>
+                  <SelectItem value="1">Standard 40hr Week</SelectItem>
+                  <SelectItem value="2">Flexible Hours</SelectItem>
+                  <SelectItem value="3">Shift Work</SelectItem>
+                  <SelectItem value="4">Admin Special</SelectItem>
                 </SelectContent>
               </Select>
               <TooltipProvider>
@@ -475,17 +488,17 @@ export function RequiredInformationTab({ isNew = false }: { isNew?: boolean }) {
               Public Holiday Calendar <span className="text-red-500">*</span>
             </Label>
             <Select
-              value={watch("public_holiday_calendar_id")}
-              onValueChange={(val) => setValue("public_holiday_calendar_id", val)}
+              value={String(watch("public_holiday_calendar_id"))}
+              onValueChange={(val) => setValue("public_holiday_calendar_id", parseInt(val))}
             >
               <SelectTrigger id="holiday_calendar_id" className="h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="standard">Standard Calendar</SelectItem>
-                <SelectItem value="us">US Federal</SelectItem>
-                <SelectItem value="uk">UK Bank Holidays</SelectItem>
-                <SelectItem value="sa">South Africa Public</SelectItem>
+                <SelectItem value="1">Standard Calendar</SelectItem>
+                <SelectItem value="2">US Federal</SelectItem>
+                <SelectItem value="3">UK Bank Holidays</SelectItem>
+                <SelectItem value="4">South Africa Public</SelectItem>
               </SelectContent>
             </Select>
           </div>

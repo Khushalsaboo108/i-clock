@@ -126,28 +126,68 @@ export {
   PaginationEllipsis,
 }
 
-// --- Standardized Pagination Logic ---
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
 
 interface StandardPaginationProps {
   currentPage: number
   totalPages: number
+  total?: number
   onPageChange: (page: number) => void
+  onLimitChange?: (limit: number) => void
+  limit?: number
+  limitOptions?: number[]
   isLoading?: boolean
   className?: string
 }
 
+const pageSizeGenerator = (dataLength: number) => {
+  if (dataLength <= 0) return [10];
+  const pageSizeArray = [];
+  const step = 10;
+  const maxLimit = 100;
+  let currentSize = step;
+
+  while (currentSize <= dataLength && currentSize <= maxLimit) {
+    pageSizeArray.push(currentSize);
+    currentSize += step;
+  }
+
+  if (pageSizeArray.length === 0 || (pageSizeArray[pageSizeArray.length - 1] < dataLength && pageSizeArray[pageSizeArray.length - 1] < maxLimit)) {
+    pageSizeArray.push(Math.min(currentSize, maxLimit));
+  }
+
+  return [...new Set(pageSizeArray)].sort((a, b) => a - b);
+};
+
 export function StandardPagination({
   currentPage,
   totalPages,
+  total = 0,
   onPageChange,
+  onLimitChange,
+  limit,
+  limitOptions,
   isLoading = false,
   className,
 }: StandardPaginationProps) {
-  if (totalPages <= 1) return null
+  if (totalPages === 0 && !onLimitChange) return null
+
+  const resolvedLimitOptions = React.useMemo(() => {
+    if (limitOptions) return limitOptions;
+    if (total > 0) return pageSizeGenerator(total);
+    return [10, 20, 50, 100];
+  }, [limitOptions, total]);
 
   const handlePageClick = (e: React.MouseEvent, page: number) => {
     e.preventDefault()
-    if (page !== currentPage && !isLoading) {
+    if (page !== currentPage && !isLoading && page >= 1 && page <= totalPages) {
       onPageChange(page)
     }
   }
@@ -171,47 +211,73 @@ export function StandardPagination({
   }
 
   return (
-    <Pagination className={cn("w-auto mx-0", className)}>
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            onClick={(e) => handlePageClick(e, currentPage - 1)}
-            aria-disabled={currentPage <= 1 || isLoading}
-            className={cn(
-              currentPage <= 1 || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"
-            )}
-          />
-        </PaginationItem>
+    <div className={cn("flex flex-wrap items-center gap-4", className)}>
+      {onLimitChange && limit !== undefined && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page:</span>
+          <Select
+            value={limit.toString()}
+            onValueChange={(value) => onLimitChange(Number(value))}
+            disabled={isLoading}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue placeholder={limit.toString()} />
+            </SelectTrigger>
+            <SelectContent>
+              {resolvedLimitOptions.map((option) => (
+                <SelectItem key={option} value={option.toString()}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
-        {getPageNumbers().map((page, index) => (
-          <PaginationItem key={index}>
-            {page === "ellipsis" ? (
-              <PaginationEllipsis />
-            ) : (
-              <PaginationLink
+      {totalPages > 1 && (
+        <Pagination className="w-auto mx-0">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
                 href="#"
-                isActive={page === currentPage}
-                onClick={(e) => handlePageClick(e, page as number)}
-                className={cn(isLoading && "pointer-events-none opacity-50", "cursor-pointer")}
-              >
-                {page}
-              </PaginationLink>
-            )}
-          </PaginationItem>
-        ))}
+                onClick={(e) => handlePageClick(e, currentPage - 1)}
+                aria-disabled={currentPage <= 1 || isLoading}
+                className={cn(
+                  currentPage <= 1 || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"
+                )}
+              />
+            </PaginationItem>
 
-        <PaginationItem>
-          <PaginationNext
-            href="#"
-            onClick={(e) => handlePageClick(e, currentPage + 1)}
-            aria-disabled={currentPage >= totalPages || isLoading}
-            className={cn(
-              currentPage >= totalPages || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"
-            )}
-          />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
+            {getPageNumbers().map((page, index) => (
+              <PaginationItem key={index}>
+                {page === "ellipsis" ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <PaginationLink
+                    href="#"
+                    isActive={page === currentPage}
+                    onClick={(e) => handlePageClick(e, page as number)}
+                    className={cn(isLoading && "pointer-events-none opacity-50", "cursor-pointer")}
+                  >
+                    {page}
+                  </PaginationLink>
+                )}
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => handlePageClick(e, currentPage + 1)}
+                aria-disabled={currentPage >= totalPages || isLoading}
+                className={cn(
+                  currentPage >= totalPages || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"
+                )}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </div>
   )
 }

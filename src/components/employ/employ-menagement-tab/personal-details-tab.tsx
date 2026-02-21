@@ -48,13 +48,6 @@ export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
                 </div>
               </div>
             </div>
-            {watch("personal_details.photo_size_kb") ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded border border-border">
-                  Hardware Generated Size: {watch("personal_details.photo_size_kb")} KB
-                </span>
-              </div>
-            ) : null}
           </div>
         </div>
       </section>
@@ -67,9 +60,15 @@ export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
         <div className="space-y-5">
           <div>
             <Label htmlFor="address" className="text-sm font-medium text-muted-foreground mb-2 block">
-              Street Address
+              Street Address <span className="text-destructive">*</span>
             </Label>
-            <Input id="address" {...register("personal_details.address.street")} className="h-10" placeholder="123 Main St" />
+            <Input
+              id="address"
+              {...register("personal_details.address.street")}
+              className={`h-10 ${errors.personal_details?.address?.street ? "border-destructive" : ""}`}
+              placeholder="123 Main St"
+            />
+            {errors.personal_details?.address?.street && <p className="text-xs text-destructive mt-1">{errors.personal_details.address.street.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -80,23 +79,41 @@ export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
             </div>
             <div>
               <Label htmlFor="town" className="text-sm font-medium text-muted-foreground mb-2 block">
-                City / Town
+                City / Town <span className="text-destructive">*</span>
               </Label>
-              <Input id="town" {...register("personal_details.address.city")} className="h-10" placeholder="e.g. Durban" />
+              <Input
+                id="town"
+                {...register("personal_details.address.city")}
+                className={`h-10 ${errors.personal_details?.address?.city ? "border-destructive" : ""}`}
+                placeholder="e.g. Durban"
+              />
+              {errors.personal_details?.address?.city && <p className="text-xs text-destructive mt-1">{errors.personal_details.address.city.message}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-6">
             <div>
               <Label htmlFor="postal_code" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Postal Code
+                Postal Code <span className="text-destructive">*</span>
               </Label>
-              <Input id="postal_code" {...register("personal_details.address.postal_code")} className="h-10" placeholder="4001" />
+              <Input
+                id="postal_code"
+                {...register("personal_details.address.postal_code")}
+                className={`h-10 ${errors.personal_details?.address?.postal_code ? "border-destructive" : ""}`}
+                placeholder="400001"
+              />
+              {errors.personal_details?.address?.postal_code && <p className="text-xs text-destructive mt-1">{errors.personal_details.address.postal_code.message}</p>}
             </div>
             <div>
-              <Label htmlFor="contact_number" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Contact Number
+              <Label htmlFor="phone" className="text-sm font-medium text-muted-foreground mb-2 block">
+                Contact Number <span className="text-destructive">*</span>
               </Label>
-              <Input id="contact_number" {...register("personal_details.contact_number")} className="h-10" placeholder="+27 12 345 6789" />
+              <Input
+                id="phone"
+                {...register("personal_details.phone")}
+                className={`h-10 ${errors.personal_details?.phone ? "border-destructive" : ""}`}
+                placeholder="1234567890"
+              />
+              {errors.personal_details?.phone && <p className="text-xs text-destructive mt-1">{errors.personal_details.phone.message}</p>}
             </div>
           </div>
           <div>
@@ -135,35 +152,38 @@ export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
 
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <Label className="text-sm font-medium text-muted-foreground mb-3 block">Sex</Label>
+              <Label className="text-sm font-medium text-muted-foreground mb-3 block">
+                Sex <span className="text-destructive">*</span>
+              </Label>
               <RadioGroup
-                value={watch("personal_details.sex")}
-                onValueChange={(val) => setValue("personal_details.sex", val as any)}
+                value={watch("personal_details.gender")}
+                onValueChange={(val) => setValue("personal_details.gender", val as any)}
                 className="flex gap-6"
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="M" id="male" />
+                  <RadioGroupItem {...register("personal_details.gender")} value="M" id="male" />
                   <Label htmlFor="male" className="font-normal cursor-pointer text-sm">Male</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="F" id="female" />
+                  <RadioGroupItem {...register("personal_details.gender")} value="F" id="female" />
                   <Label htmlFor="female" className="font-normal cursor-pointer text-sm">Female</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="not-specified" id="not-specified" />
-                  <Label htmlFor="not-specified" className="font-normal cursor-pointer text-sm">Not Specified</Label>
+                  <RadioGroupItem {...register("personal_details.gender")} value="Other" id="other" />
+                  <Label htmlFor="other" className="font-normal cursor-pointer text-sm">Other</Label>
                 </div>
               </RadioGroup>
+              {errors.personal_details?.gender && <p className="text-xs text-destructive mt-1">{errors.personal_details.gender.message}</p>}
             </div>
             <div>
               <Label htmlFor="marital_status" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Marriage Status
+                Marriage Status <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={watch("personal_details.marital_status")}
                 onValueChange={(val) => setValue("personal_details.marital_status", val)}
               >
-                <SelectTrigger id="marital_status" className="h-10">
+                <SelectTrigger id="marital_status" className={`h-10 ${errors.personal_details?.marital_status ? "border-destructive" : ""}`}>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -173,6 +193,7 @@ export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
                   <SelectItem value="widowed">Widowed</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.personal_details?.marital_status && <p className="text-xs text-destructive mt-1">{errors.personal_details.marital_status.message}</p>}
             </div>
           </div>
         </div>
@@ -185,22 +206,40 @@ export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <Label htmlFor="emergency_contact_person" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Contact Person
+                Contact Person <span className="text-destructive">*</span>
               </Label>
-              <Input id="emergency_contact_person" {...register("personal_details.emergency_contact.person")} className="h-10" placeholder="Name & Surname" />
+              <Input
+                id="emergency_contact_person"
+                {...register("personal_details.emergency_contact.person")}
+                className={`h-10 ${errors.personal_details?.emergency_contact?.person ? "border-destructive" : ""}`}
+                placeholder="Name & Surname"
+              />
+              {errors.personal_details?.emergency_contact?.person && <p className="text-xs text-destructive mt-1">{errors.personal_details.emergency_contact.person.message}</p>}
             </div>
             <div>
               <Label htmlFor="emergency_contact_relationship" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Relationship
+                Relationship <span className="text-destructive">*</span>
               </Label>
-              <Input id="emergency_contact_relationship" {...register("personal_details.emergency_contact.relationship")} className="h-10" placeholder="e.g. Spouse" />
+              <Input
+                id="emergency_contact_relationship"
+                {...register("personal_details.emergency_contact.relationship")}
+                className={`h-10 ${errors.personal_details?.emergency_contact?.relationship ? "border-destructive" : ""}`}
+                placeholder="e.g. Spouse"
+              />
+              {errors.personal_details?.emergency_contact?.relationship && <p className="text-xs text-destructive mt-1">{errors.personal_details.emergency_contact.relationship.message}</p>}
             </div>
           </div>
           <div>
             <Label htmlFor="emergency_contact_number" className="text-sm font-medium text-muted-foreground mb-2 block">
-              Contact Number
+              Contact Number <span className="text-destructive">*</span>
             </Label>
-            <Input id="emergency_contact_number" {...register("personal_details.emergency_contact.number")} className="h-10" placeholder="+27 ..." />
+            <Input
+              id="emergency_contact_number"
+              {...register("personal_details.emergency_contact.number")}
+              className={`h-10 ${errors.personal_details?.emergency_contact?.number ? "border-destructive" : ""}`}
+              placeholder="+27 ..."
+            />
+            {errors.personal_details?.emergency_contact?.number && <p className="text-xs text-destructive mt-1">{errors.personal_details.emergency_contact.number.message}</p>}
           </div>
         </div>
       </section>
@@ -215,19 +254,25 @@ export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <Label htmlFor="bank_name" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Bank Name
+                Bank Name <span className="text-destructive">*</span>
               </Label>
-              <Input id="bank_name" {...register("personal_details.banking.bank_name")} className="h-10" placeholder="Standard Bank, Chase, etc." />
+              <Input
+                id="bank_name"
+                {...register("personal_details.banking.bank_name")}
+                className={`h-10 ${errors.personal_details?.banking?.bank_name ? "border-destructive" : ""}`}
+                placeholder="Standard Bank, Chase, etc."
+              />
+              {errors.personal_details?.banking?.bank_name && <p className="text-xs text-destructive mt-1">{errors.personal_details.banking.bank_name.message}</p>}
             </div>
             <div>
               <Label htmlFor="account_type" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Account Type
+                Account Type <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={watch("personal_details.banking.account_type")}
                 onValueChange={(val) => setValue("personal_details.banking.account_type", val)}
               >
-                <SelectTrigger id="account_type" className="h-10">
+                <SelectTrigger id="account_type" className={`h-10 ${errors.personal_details?.banking?.account_type ? "border-destructive" : ""}`}>
                   <SelectValue placeholder="Current/Savings" />
                 </SelectTrigger>
                 <SelectContent>
@@ -236,22 +281,35 @@ export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
                   <SelectItem value="business">Business</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.personal_details?.banking?.account_type && <p className="text-xs text-destructive mt-1">{errors.personal_details.banking.account_type.message}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-6">
             <div>
               <Label htmlFor="account_number" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Account Number
+                Account Number <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <Input id="account_number" {...register("personal_details.banking.account_number")} className="h-10 pr-10" placeholder="Account #" />
+                <Input
+                  id="account_number"
+                  {...register("personal_details.banking.account_number")}
+                  className={`h-10 pr-10 ${errors.personal_details?.banking?.account_number ? "border-destructive" : ""}`}
+                  placeholder="Account #"
+                />
               </div>
+              {errors.personal_details?.banking?.account_number && <p className="text-xs text-destructive mt-1">{errors.personal_details.banking.account_number.message}</p>}
             </div>
             <div>
               <Label htmlFor="routing_number" className="text-sm font-medium text-muted-foreground mb-2 block">
-                Routing / Branch Code
+                Routing / Branch Code <span className="text-destructive">*</span>
               </Label>
-              <Input id="routing_number" {...register("personal_details.banking.routing_code")} className="h-10" placeholder="000123" />
+              <Input
+                id="routing_number"
+                {...register("personal_details.banking.routing_code")}
+                className={`h-10 ${errors.personal_details?.banking?.routing_code ? "border-destructive" : ""}`}
+                placeholder="000123"
+              />
+              {errors.personal_details?.banking?.routing_code && <p className="text-xs text-destructive mt-1">{errors.personal_details.banking.routing_code.message}</p>}
             </div>
           </div>
         </div>
@@ -284,21 +342,6 @@ export function PersonalDetailsTab({ isNew = false }: { isNew?: boolean }) {
               className="h-10"
               placeholder="e.g. Unit 4B"
             />
-          </div>
-        </div>
-      </section>
-
-      {/* Section 5: Notes */}
-      <section className="border border-border rounded-lg p-6 bg-card">
-        <h2 className="text-base font-semibold text-foreground mb-5 pb-3 border-b border-border">Notes</h2>
-        <div>
-          <Textarea
-            {...register("personal_details.notes")}
-            placeholder="Open text box for any note that you wish to add..."
-            className="min-h-[120px] resize-none"
-          />
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-xs text-muted-foreground">Character count: {watch("personal_details.notes")?.length || 0} / 5000</p>
           </div>
         </div>
       </section>

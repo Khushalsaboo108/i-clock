@@ -139,7 +139,7 @@ export async function createSiteAction(formData: SiteFormValues) {
   }
 
   const response = await serverApi.post<Site>(
-    API_ENDPOINTS.SITES.BASE,
+    API_ENDPOINTS.SITES.CREATE,
     parseResult.data,
     { token }
   )

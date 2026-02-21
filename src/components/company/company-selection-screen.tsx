@@ -140,6 +140,13 @@ export function CompanySelectionScreen() {
 
   const totalPages = Math.ceil(pagination.total / pagination.limit)
 
+  const handleLimitChange = (newLimit: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("page", "1")
+    params.set("limit", newLimit.toString())
+    router.push(`/?${params.toString()}`, { scroll: false })
+  }
+
   const handleAddCompany = () => {
     router.push("/company/new")
   }
@@ -344,11 +351,14 @@ export function CompanySelectionScreen() {
         />
 
         {/* Pagination */}
-        <div className="mt-8">
+        <div className="mt-8 flex justify-center">
           <StandardPagination
             currentPage={pagination.page}
             totalPages={totalPages}
+            total={pagination.total}
             onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+            // limit={pagination.limit}
             isLoading={isLoading}
           />
         </div>
