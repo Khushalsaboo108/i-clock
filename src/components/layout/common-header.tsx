@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
 import ModeToggle from "@/components/mode-toggle"
 import { Home, Users, BarChart3, Clock, CalendarOff, Repeat, Settings2 } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
 
 interface NavItem {
   icon: LucideIcon
@@ -16,7 +17,7 @@ interface NavItem {
   route: string
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   {
     icon: Home,
     title: "Home",
@@ -25,15 +26,39 @@ const navItems: NavItem[] = [
 ]
 
 export default function CommonHeader() {
+  const router = useRouter()
+  const params = useParams();
+
+  console.log("params", params)
   const [isOpen, setIsOpen] = React.useState(false)
   const [date, setDate] = React.useState<Date | null>(null)
+
+  // Build conditional nav items dynamically based on id in params
+  const getConditionalNavItems = (): NavItem[] => {
+    if (!params?.id) return []
+    
+    return [
+      // {
+      //   icon: CalendarOff,
+      //   title: "Holiday",
+      //   route: `/company/${params.id}/holiday`,
+      // },
+      {
+        icon: Clock,
+        title: "Working Rules",
+        route: `/company/${params.id}/work-cycles`,
+      },
+    ]
+  }
+
+  const navItems = [...baseNavItems, ...getConditionalNavItems()]
 
   React.useEffect(() => {
     setDate(new Date())
 
     const timer = setInterval(() => {
       setDate(new Date())
-    }, 1000)
+    }, 60000)
 
     return () => clearInterval(timer)
   }, [])
