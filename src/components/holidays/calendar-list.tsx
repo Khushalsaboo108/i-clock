@@ -1,34 +1,23 @@
 "use client"
 
 import { useState } from "react"
-import type { HolidayCalendar } from "@/components/public-holidays-screen"
-import { Badge } from "@/components/ui/badge"
+import type { CalendarApiItem } from "@/lib/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, MoreVertical, Calendar } from "lucide-react"
+import { Search, Calendar } from "lucide-react"
 
 interface CalendarListProps {
-  calendars: HolidayCalendar[]
-  selectedCalendarId: string
-  onSelectCalendar: (id: string) => void
+  calendars: CalendarApiItem[]
+  selectedCalendarId: number | null
+  onSelectCalendar: (id: number) => void
 }
 
 export default function CalendarList({ calendars, selectedCalendarId, onSelectCalendar }: CalendarListProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
-  const filteredCalendars = calendars.filter((cal) => cal.name.toLowerCase().includes(searchQuery.toLowerCase()))
-
-  const getStatusColor = (status: HolidayCalendar["status"]) => {
-    switch (status) {
-      case "active":
-        return "bg-[#10B981] text-white"
-      case "draft":
-        return "bg-[#F59E0B] text-white"
-      case "inactive":
-        return "bg-[#6B7280] text-white"
-    }
-  }
+  const filteredCalendars = calendars.filter((cal) =>
+    cal.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <div className="rounded-lg bg-card p-6">
@@ -47,48 +36,40 @@ export default function CalendarList({ calendars, selectedCalendarId, onSelectCa
 
       {/* Calendar Cards */}
       <div className="space-y-3">
-        {filteredCalendars.map((calendar) => (
-          <div
-            key={calendar.id}
-            onClick={() => onSelectCalendar(calendar.id)}
-            className={`cursor-pointer rounded-lg border p-4 transition-all hover:shadow-md ${calendar.id === selectedCalendarId
+        {filteredCalendars.length === 0 ? (
+          <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-border">
+            <p className="text-sm text-muted-foreground">
+              {searchQuery ? "No calendars match your search" : "No calendars found"}
+            </p>
+          </div>
+        ) : (
+          filteredCalendars.map((calendar) => (
+            <div
+              key={calendar.id}
+              onClick={() => onSelectCalendar(calendar.id)}
+              className={`cursor-pointer rounded-lg border p-4 transition-all hover:shadow-md ${calendar.id === selectedCalendarId
                 ? "border-l-4 border-l-[#2563EB] bg-[#EFF6FF] dark:bg-blue-900/20"
                 : "border-border bg-card"
-              }`}
-          >
-            <div className="flex items-start justify-between">
+                }`}
+            >
               <div className="flex items-start gap-3">
                 <Calendar className="mt-0.5 h-5 w-5 text-primary" />
-                <div className="flex-1">
-                  <h3 className="font-medium text-foreground">{calendar.name}</h3>
-                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{calendar.holidayCount} holidays</span>
-                    <span>•</span>
-                    <Badge className={`text-xs ${getStatusColor(calendar.status)}`}>
-                      {calendar.status.charAt(0).toUpperCase() + calendar.status.slice(1)}
-                    </Badge>
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {calendar.employeeCount > 0 ? `Used by ${calendar.employeeCount} employees` : "Not assigned"}
-                  </p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-foreground truncate">{calendar.name}</h3>
+                  {calendar.created_at && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Created {new Date(calendar.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  )}
                 </div>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                  <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                  <DropdownMenuItem>Assign Employees</DropdownMenuItem>
-                  <DropdownMenuItem className="text-[#EF4444]">Delete</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   )

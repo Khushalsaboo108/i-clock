@@ -223,8 +223,8 @@ export function WorkCyclesScreen() {
     return (
         <div className="min-h-screen bg-muted/40">
             {/* Header */}
-            <header className="bg-background border-b border-border">
-                <div className="px-8 py-5">
+            <header className="bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b border-border sticky top-0 z-40">
+                <div className="max-w-7xl mx-auto px-6 py-5">
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-semibold text-foreground">Work Cycles</h1>
@@ -240,7 +240,7 @@ export function WorkCyclesScreen() {
                 </div>
             </header>
 
-            <div className="px-8 py-6">
+            <div className="max-w-7xl mx-auto px-6 py-8">
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <Card>

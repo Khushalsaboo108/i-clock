@@ -1,42 +1,36 @@
 "use client"
 
-import type { HolidayCalendar, Holiday } from "@/components/public-holidays-screen"
-import { Badge } from "@/components/ui/badge"
+import type { CalendarApiItem, HolidayApiItem } from "@/lib/actions"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Plus, Edit, Settings, Trash2, Check, X } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Plus, CalendarDays, Loader2, Trash2 } from "lucide-react"
 import { format } from "date-fns"
-import { useState } from "react"
+
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const
 
 interface CalendarDetailProps {
-  calendar: HolidayCalendar
+  calendar: CalendarApiItem
+  holidays: HolidayApiItem[]
+  isLoadingHolidays: boolean
+  weekendDays: number[]
+  isLoadingWeekends: boolean
+  isSavingWeekends: boolean
+  onWeekendToggle: (day: number) => void
   onAddHoliday: () => void
-  onEditHoliday: (holiday: Holiday) => void
-  onDeleteHoliday: (holidayId: string) => void
+  onDeleteHoliday: (holidayId: number) => void
 }
 
 export default function CalendarDetail({
   calendar,
+  holidays,
+  isLoadingHolidays,
+  weekendDays,
+  isLoadingWeekends,
+  isSavingWeekends,
+  onWeekendToggle,
   onAddHoliday,
-  onEditHoliday,
   onDeleteHoliday,
 }: CalendarDetailProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-
-  // Convert holiday dates to Date objects for calendar highlighting
-  const holidayDates = calendar.holidays.map((h) => new Date(h.date))
-
-  const getStatusColor = (status: HolidayCalendar["status"]) => {
-    switch (status) {
-      case "active":
-        return "bg-[#10B981] text-white"
-      case "draft":
-        return "bg-[#F59E0B] text-white"
-      case "inactive":
-        return "bg-[#6B7280] text-white"
-    }
-  }
-
   return (
     <div className="rounded-lg bg-card">
       {/* Header */}
@@ -44,153 +38,130 @@ export default function CalendarDetail({
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-semibold text-foreground">{calendar.name}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Calendar Code: {calendar.code}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Overview Section */}
-      <div className="border-b border-border p-6">
-        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
-          <span>📊</span> Overview
-        </h3>
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <p className="text-sm text-muted-foreground">Total Holidays</p>
-            <p className="mt-1 text-base font-semibold text-foreground">{calendar.holidayCount}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Status</p>
-            <Badge className={`mt-1 ${getStatusColor(calendar.status)}`}>
-              {calendar.status === "active" && "🟢 "}
-              {calendar.status.charAt(0).toUpperCase() + calendar.status.slice(1)}
-            </Badge>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Assigned to</p>
-            <p className="mt-1 text-base font-semibold text-foreground">{calendar.employeeCount} employees</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Lost Time</p>
-            <p className="mt-1 text-base font-semibold text-foreground">
-              {calendar.includeLostTime ? "Included" : "Not Included"}
+            <p className="mt-1 text-sm text-muted-foreground">
+              Calendar ID: {calendar.id}
             </p>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Created</p>
-            <p className="mt-1 text-base text-foreground">{calendar.created}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Last Modified</p>
-            <p className="mt-1 text-base text-foreground">{calendar.lastModified}</p>
-          </div>
         </div>
       </div>
 
-      {/* Calendar View Section */}
+      {/* Weekend Section */}
       <div className="border-b border-border p-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-            <span>📅</span> Calendar View
+            <span>📅</span> Weekend Days
           </h3>
-          <Button onClick={onAddHoliday} size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Holiday
-          </Button>
+          {isSavingWeekends && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Saving...
+            </span>
+          )}
         </div>
-        <div className="flex justify-center">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            className="rounded-md border"
-            modifiers={{
-              holiday: holidayDates,
-            }}
-            modifiersClassNames={{
-              holiday: "bg-primary text-primary-foreground hover:bg-primary/90",
-            }}
-          />
-        </div>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Select the days that should be treated as weekends (non-working days).
+        </p>
+        {isLoadingWeekends ? (
+          <div className="flex gap-2">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-14 rounded-lg" />
+            ))}
+          </div>
+        ) : (
+          <div className="flex gap-2 flex-wrap">
+            {DAY_LABELS.map((label, index) => {
+              const isSelected = weekendDays.includes(index)
+              return (
+                <button
+                  key={index}
+                  onClick={() => onWeekendToggle(index)}
+                  disabled={isSavingWeekends}
+                  className={`
+                    px-4 py-2 rounded-lg text-sm font-medium border transition-all
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    ${isSelected
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                    }
+                  `}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Holiday List Section */}
+      {/* Holidays Section */}
       <div className="p-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-            <span>📋</span> Holiday List ({calendar.year})
+            <span>📋</span> Holidays
           </h3>
-          <Button onClick={onAddHoliday} variant="outline" size="sm" className="text-primary bg-transparent hover:bg-muted">
-            <Plus className="mr-2 h-4 w-4" />
+          <Button onClick={onAddHoliday} size="sm" className="gap-1.5">
+            <Plus className="h-4 w-4" />
             Add Holiday
           </Button>
         </div>
 
-        {calendar.holidays.length === 0 ? (
-          <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border">
-            <p className="text-sm text-muted-foreground">No holidays added yet. Click "Add Holiday" to get started.</p>
+        {isLoadingHolidays ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-lg" />
+            ))}
+          </div>
+        ) : holidays.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 rounded-lg border border-dashed border-border">
+            <CalendarDays className="h-10 w-10 text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground">No holidays added yet.</p>
+            <Button onClick={onAddHoliday} variant="outline" size="sm" className="mt-3 gap-1.5">
+              <Plus className="h-4 w-4" />
+              Add Holiday
+            </Button>
           </div>
         ) : (
           <div className="space-y-3">
-            {calendar.holidays
-              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-              .map((holiday) => (
-                <div
-                  key={holiday.id}
-                  className="rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">{holiday.icon}</span>
-                      <div>
-                        <h4 className="font-medium text-foreground">{holiday.name}</h4>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Date:{" "}
-                          {format(new Date(holiday.date), "MMMM d, yyyy")}{" "}
-                          ({holiday.dayOfWeek})
-                        </p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <span className="text-sm font-medium text-muted-foreground">Lost Time:</span>
-                          {holiday.includeLostTime ? (
-                            <span className="flex items-center gap-1 text-sm text-[#10B981]">
-                              <Check className="h-4 w-4" />
-                              Included
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-sm text-[#EF4444]">
-                              <X className="h-4 w-4" />
-                              Not Included
-                            </span>
-                          )}
-                        </div>
+            {holidays.map((holiday, index) => (
+              <div
+                key={holiday.holiday_id || index}
+                className="rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-md"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">🎉</span>
+                    <div>
+                      <h4 className="font-medium text-foreground">{holiday.name}</h4>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {holiday.holiday_date
+                          ? format(new Date(holiday.holiday_date), "MMMM d, yyyy (EEEE)")
+                          : "No date set"}
+                      </p>
+                      {holiday.descripti && (
+                        <p className="mt-1 text-sm text-muted-foreground">{holiday.descripti}</p>
+                      )}
+                      <div className="mt-2 flex items-center gap-2">
+                        {holiday.is_optional && (
+                          <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                            Optional
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => onEditHoliday(holiday)}>
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onDeleteHoliday(holiday.id)}
-                        className="text-[#EF4444] hover:bg-[#FEE2E2]"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </div>
+                  <button
+                    onClick={() => {
+                      const id = holiday.id ?? holiday.holiday_id
+                      if (id != null) onDeleteHoliday(id)
+                    }}
+                    className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    title="Delete holiday"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         )}
       </div>

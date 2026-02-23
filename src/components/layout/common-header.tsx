@@ -36,13 +36,13 @@ export default function CommonHeader() {
   // Build conditional nav items dynamically based on id in params
   const getConditionalNavItems = (): NavItem[] => {
     if (!params?.id) return []
-    
+
     return [
-      // {
-      //   icon: CalendarOff,
-      //   title: "Holiday",
-      //   route: `/company/${params.id}/holiday`,
-      // },
+      {
+        icon: CalendarOff,
+        title: "Public Holiday",
+        route: `/public-holidays?siteId=${params.id}`,
+      },
       {
         icon: Clock,
         title: "Working Rules",

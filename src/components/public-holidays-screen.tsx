@@ -1,321 +1,323 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { useSearchParams } from "next/navigation"
 import CalendarList from "@/components/holidays/calendar-list"
 import CalendarDetail from "@/components/holidays/calendar-detail"
 import CreateCalendarModal from "@/components/holidays/create-calendar-modal"
 import AddHolidayModal from "@/components/holidays/add-holiday-modal"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
-import { format } from "date-fns"
-
-export interface Holiday {
-  id: string
-  name: string
-  date: string
-  dayOfWeek: string
-  includeLostTime: boolean
-  icon: string
-  description?: string
-  recurring?: boolean
-}
-
-export interface HolidayCalendar {
-  id: string
-  name: string
-  code: string
-  year: number
-  holidayCount: number
-  status: "active" | "draft" | "inactive"
-  employeeCount: number
-  includeLostTime: boolean
-  created: string
-  lastModified: string
-  description?: string
-  holidays: Holiday[]
-}
-
-// Mock data
-const mockCalendars: HolidayCalendar[] = [
-  {
-    id: "1",
-    name: "Standard US Calendar",
-    code: "US-STD-2024",
-    year: 2024,
-    holidayCount: 25,
-    status: "active",
-    employeeCount: 245,
-    includeLostTime: true,
-    created: "Jan 15, 2024",
-    lastModified: "Nov 20, 2024",
-    description: "Standard US federal holidays",
-    holidays: [
-      {
-        id: "h1",
-        name: "New Year's Day",
-        date: "2024-01-01",
-        dayOfWeek: "Monday",
-        includeLostTime: true,
-        icon: "🎉",
-      },
-      {
-        id: "h2",
-        name: "Martin Luther King Jr. Day",
-        date: "2024-01-15",
-        dayOfWeek: "Monday",
-        includeLostTime: true,
-        icon: "🎉",
-      },
-      {
-        id: "h3",
-        name: "Presidents' Day",
-        date: "2024-02-19",
-        dayOfWeek: "Monday",
-        includeLostTime: false,
-        icon: "🎉",
-      },
-      {
-        id: "h4",
-        name: "Memorial Day",
-        date: "2024-05-27",
-        dayOfWeek: "Monday",
-        includeLostTime: true,
-        icon: "🎖️",
-      },
-      {
-        id: "h5",
-        name: "Independence Day",
-        date: "2024-07-04",
-        dayOfWeek: "Thursday",
-        includeLostTime: true,
-        icon: "🎆",
-      },
-      {
-        id: "h6",
-        name: "Labor Day",
-        date: "2024-09-02",
-        dayOfWeek: "Monday",
-        includeLostTime: true,
-        icon: "🎉",
-      },
-      {
-        id: "h7",
-        name: "Thanksgiving Day",
-        date: "2024-11-28",
-        dayOfWeek: "Thursday",
-        includeLostTime: true,
-        icon: "🎊",
-      },
-      {
-        id: "h8",
-        name: "Christmas Day",
-        date: "2024-12-25",
-        dayOfWeek: "Wednesday",
-        includeLostTime: true,
-        icon: "🎄",
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "UK Regional Calendar",
-    code: "UK-REG-2024",
-    year: 2024,
-    holidayCount: 18,
-    status: "active",
-    employeeCount: 89,
-    includeLostTime: true,
-    created: "Feb 10, 2024",
-    lastModified: "Oct 15, 2024",
-    description: "UK bank holidays",
-    holidays: [
-      {
-        id: "h9",
-        name: "New Year's Day",
-        date: "2024-01-01",
-        dayOfWeek: "Monday",
-        includeLostTime: true,
-        icon: "🎉",
-      },
-      {
-        id: "h10",
-        name: "Good Friday",
-        date: "2024-03-29",
-        dayOfWeek: "Friday",
-        includeLostTime: true,
-        icon: "🎉",
-      },
-      {
-        id: "h11",
-        name: "Easter Monday",
-        date: "2024-04-01",
-        dayOfWeek: "Monday",
-        includeLostTime: true,
-        icon: "🎉",
-      },
-    ],
-  },
-  {
-    id: "3",
-    name: "APAC Calendar",
-    code: "APAC-2024",
-    year: 2024,
-    holidayCount: 22,
-    status: "active",
-    employeeCount: 156,
-    includeLostTime: false,
-    created: "Jan 20, 2024",
-    lastModified: "Sep 10, 2024",
-    holidays: [],
-  },
-  {
-    id: "4",
-    name: "Corporate Events (Draft)",
-    code: "CORP-DRAFT-2024",
-    year: 2024,
-    holidayCount: 5,
-    status: "draft",
-    employeeCount: 0,
-    includeLostTime: true,
-    created: "Nov 5, 2024",
-    lastModified: "Nov 5, 2024",
-    holidays: [],
-  },
-]
+import { Skeleton } from "@/components/ui/skeleton"
+import { Plus, CalendarDays } from "lucide-react"
+import {
+  createCalendarAction,
+  getCalendarsAction,
+  createHolidayAction,
+  getHolidaysAction,
+  deleteHolidayAction,
+  getWeekendsAction,
+  createWeekendAction,
+} from "@/lib/actions"
+import type { CalendarApiItem, HolidayApiItem, WeekendData } from "@/lib/actions"
+import { showError, showSuccess } from "@/lib/toast"
 
 export default function PublicHolidaysScreen() {
-  const [calendars, setCalendars] = useState<HolidayCalendar[]>(mockCalendars)
-  const [selectedCalendarId, setSelectedCalendarId] = useState<string>(mockCalendars[0].id)
+  const searchParams = useSearchParams()
+  const siteId = searchParams.get("siteId")
+
+  // Calendar state
+  const [calendars, setCalendars] = useState<CalendarApiItem[]>([])
+  const [selectedCalendarId, setSelectedCalendarId] = useState<number | null>(null)
+  const [isLoadingCalendars, setIsLoadingCalendars] = useState(true)
+
+  // Holidays state
+  const [holidays, setHolidays] = useState<HolidayApiItem[]>([])
+  const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
+
+  // Weekends state
+  const [weekendDays, setWeekendDays] = useState<number[]>([])
+  const [isLoadingWeekends, setIsLoadingWeekends] = useState(false)
+
+  // Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isAddHolidayModalOpen, setIsAddHolidayModalOpen] = useState(false)
-  const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
+  const [isCreatingHoliday, setIsCreatingHoliday] = useState(false)
+  const [isSavingWeekends, setIsSavingWeekends] = useState(false)
+
+  // ── Fetch Calendars ──
+  const fetchCalendars = useCallback(async () => {
+    if (!siteId) return
+    setIsLoadingCalendars(true)
+    try {
+      const response = await getCalendarsAction(Number(siteId))
+      console.log("[fetchCalendars] Full API response:", JSON.stringify(response, null, 2))
+      if (response.success && response.data) {
+        const data = response.data as CalendarApiItem[]
+        console.log("[fetchCalendars] First calendar item:", data[0])
+        setCalendars(data)
+        // Auto-select first calendar if none selected
+        if (selectedCalendarId === null && data.length > 0) {
+          const firstId = data[0].id
+          console.log("[fetchCalendars] Auto-selecting id:", firstId)
+          setSelectedCalendarId(firstId)
+        }
+      } else {
+        setCalendars([])
+      }
+    } catch (err) {
+      showError("Failed to load calendars")
+      console.error(err)
+    } finally {
+      setIsLoadingCalendars(false)
+    }
+  }, [siteId, selectedCalendarId])
+
+  useEffect(() => {
+    fetchCalendars()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteId])
+
+  // ── Fetch Holidays for selected calendar ──
+  const fetchHolidays = useCallback(async (calendarId: number) => {
+    setIsLoadingHolidays(true)
+    try {
+      const response = await getHolidaysAction(calendarId)
+      if (response.success && response.data) {
+        setHolidays(response.data as HolidayApiItem[])
+      } else {
+        setHolidays([])
+      }
+    } catch (err) {
+      console.error(err)
+      setHolidays([])
+    } finally {
+      setIsLoadingHolidays(false)
+    }
+  }, [])
+
+  // ── Fetch Weekends for selected calendar ──
+  const fetchWeekends = useCallback(async (calendarId: number) => {
+    setIsLoadingWeekends(true)
+    try {
+      const response = await getWeekendsAction(calendarId)
+      if (response.success && response.data) {
+        // API returns data as a plain array e.g. [5, 6]
+        setWeekendDays(response.data as number[])
+      } else {
+        setWeekendDays([])
+      }
+    } catch (err) {
+      console.error(err)
+      setWeekendDays([])
+    } finally {
+      setIsLoadingWeekends(false)
+    }
+  }, [])
+
+  // When a calendar is selected, fetch its holidays & weekends
+  useEffect(() => {
+    if (selectedCalendarId) {
+      fetchHolidays(selectedCalendarId)
+      fetchWeekends(selectedCalendarId)
+    }
+  }, [selectedCalendarId, fetchHolidays, fetchWeekends])
+
+  // ── Create Calendar ──
+  const handleCreateCalendar = async (name: string) => {
+    if (!siteId) {
+      showError("No company selected. Please navigate from a company page.")
+      return
+    }
+
+    setIsCreating(true)
+    try {
+      const response = await createCalendarAction(Number(siteId), name)
+      if (response.success) {
+        showSuccess("Calendar created successfully")
+        setIsCreateModalOpen(false)
+        await fetchCalendars()
+      } else {
+        showError(response.message || "Failed to create calendar")
+      }
+    } catch (err) {
+      showError("An unexpected error occurred")
+      console.error(err)
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  // ── Create Holiday ──
+  const handleAddHoliday = async (
+    name: string,
+    holidayDate: string,
+    isOptional: boolean,
+    description: string
+  ) => {
+    if (!selectedCalendarId) {
+      showError("Please select a calendar first")
+      return
+    }
+
+    console.log("[handleAddHoliday] Creating holiday:", { selectedCalendarId, name, holidayDate, isOptional, description })
+
+    setIsCreatingHoliday(true)
+    try {
+      const response = await createHolidayAction(
+        selectedCalendarId,
+        name,
+        holidayDate,
+        isOptional,
+        description
+      )
+      console.log("[handleAddHoliday] Response:", response)
+      if (response.success) {
+        showSuccess("Holiday added successfully")
+        setIsAddHolidayModalOpen(false)
+        await fetchHolidays(selectedCalendarId)
+      } else {
+        showError(response.message || "Failed to add holiday")
+      }
+    } catch (err) {
+      showError("An unexpected error occurred")
+      console.error("[handleAddHoliday] Error:", err)
+    } finally {
+      setIsCreatingHoliday(false)
+    }
+  }
+
+  // ── Update Weekends ──
+  const handleWeekendToggle = async (day: number) => {
+    if (!selectedCalendarId || !siteId) return
+
+    const newDays = weekendDays.includes(day)
+      ? weekendDays.filter((d) => d !== day)
+      : [...weekendDays, day]
+
+    setIsSavingWeekends(true)
+    setWeekendDays(newDays) // Optimistic update
+    try {
+      const response = await createWeekendAction(Number(siteId), selectedCalendarId, newDays)
+      if (response.success) {
+        showSuccess("Weekend days updated")
+      } else {
+        // Revert on failure
+        setWeekendDays(weekendDays)
+        showError(response.message || "Failed to update weekends")
+      }
+    } catch (err) {
+      setWeekendDays(weekendDays)
+      showError("An unexpected error occurred")
+      console.error(err)
+    } finally {
+      setIsSavingWeekends(false)
+    }
+  }
+
+  // ── Delete Holiday ──
+  const handleDeleteHoliday = async (holidayId: number) => {
+    if (!selectedCalendarId) return
+
+    try {
+      const response = await deleteHolidayAction(holidayId)
+      if (response.success) {
+        showSuccess("Holiday deleted successfully")
+        await fetchHolidays(selectedCalendarId)
+      } else {
+        showError(response.message || "Failed to delete holiday")
+      }
+    } catch (err) {
+      showError("An unexpected error occurred")
+      console.error(err)
+    }
+  }
 
   const selectedCalendar = calendars.find((cal) => cal.id === selectedCalendarId)
-
-  const handleCreateCalendar = (newCalendar: Omit<HolidayCalendar, "id">) => {
-    const calendar: HolidayCalendar = {
-      ...newCalendar,
-      id: Math.random().toString(36).substr(2, 9),
-    }
-    setCalendars([...calendars, calendar])
-    setSelectedCalendarId(calendar.id)
-    setIsCreateModalOpen(false)
-  }
-
-  const handleAddHoliday = (holiday: Omit<Holiday, "id">) => {
-    if (!selectedCalendar) return
-
-    const newHoliday: Holiday = {
-      ...holiday,
-      id: Math.random().toString(36).substr(2, 9),
-    }
-
-    const updatedCalendars = calendars.map((cal) => {
-      if (cal.id === selectedCalendarId) {
-        return {
-          ...cal,
-          holidays: [...cal.holidays, newHoliday],
-          holidayCount: cal.holidays.length + 1,
-          lastModified: format(new Date(), "MMM d, yyyy"),
-        }
-      }
-      return cal
-    })
-
-    setCalendars(updatedCalendars)
-    setIsAddHolidayModalOpen(false)
-    setEditingHoliday(null)
-  }
-
-  const handleEditHoliday = (holiday: Holiday) => {
-    setEditingHoliday(holiday)
-    setIsAddHolidayModalOpen(true)
-  }
-
-  const handleUpdateHoliday = (updatedHoliday: Omit<Holiday, "id">) => {
-    if (!editingHoliday || !selectedCalendar) return
-
-    const updatedCalendars = calendars.map((cal) => {
-      if (cal.id === selectedCalendarId) {
-        return {
-          ...cal,
-          holidays: cal.holidays.map((h) => (h.id === editingHoliday.id ? { ...updatedHoliday, id: h.id } : h)),
-          lastModified: format(new Date(), "MMM d, yyyy"),
-        }
-      }
-      return cal
-    })
-
-    setCalendars(updatedCalendars)
-    setIsAddHolidayModalOpen(false)
-    setEditingHoliday(null)
-  }
-
-  const handleDeleteHoliday = (holidayId: string) => {
-    if (!selectedCalendar) return
-
-    const updatedCalendars = calendars.map((cal) => {
-      if (cal.id === selectedCalendarId) {
-        const newHolidays = cal.holidays.filter((h) => h.id !== holidayId)
-        return {
-          ...cal,
-          holidays: newHolidays,
-          holidayCount: newHolidays.length,
-          lastModified: format(new Date(), "MMM d, yyyy"),
-        }
-      }
-      return cal
-    })
-
-    setCalendars(updatedCalendars)
-  }
 
   return (
     <div className="min-h-screen bg-muted/40">
       {/* Header */}
-      <div className="border-b bg-background px-8 py-6">
-        <div className="mx-auto flex max-w-[1400px] items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground">Public Holiday Calendars</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Manage holiday calendars for different regions and employee groups
+      <header className="bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b border-border sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 py-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">Public Holiday Calendars</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Manage holiday calendars, weekends, and individual holidays
+              </p>
+            </div>
+            <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              New Calendar
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {isLoadingCalendars ? (
+          <div className="flex gap-6">
+            <div className="w-[400px] shrink-0 space-y-3">
+              <Skeleton className="h-10 w-full rounded-lg" />
+              <Skeleton className="h-24 w-full rounded-lg" />
+              <Skeleton className="h-24 w-full rounded-lg" />
+              <Skeleton className="h-24 w-full rounded-lg" />
+            </div>
+            <div className="flex-1 space-y-4">
+              <Skeleton className="h-32 w-full rounded-lg" />
+              <Skeleton className="h-48 w-full rounded-lg" />
+              <Skeleton className="h-64 w-full rounded-lg" />
+            </div>
+          </div>
+        ) : calendars.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+              <CalendarDays className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <h2 className="mt-6 text-xl font-semibold text-foreground">No calendars yet</h2>
+            <p className="mt-2 text-sm text-muted-foreground text-center max-w-md">
+              Create your first holiday calendar to start managing public holidays and weekends for your employees.
             </p>
+            <Button onClick={() => setIsCreateModalOpen(true)} className="mt-6 gap-2">
+              <Plus className="w-4 h-4" />
+              Create Calendar
+            </Button>
           </div>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Calendar
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content - Two Column Layout */}
-      <div className="mx-auto max-w-[1400px] px-8 py-6">
-        <div className="flex gap-6">
-          {/* Left Column - Calendar List */}
-          <div className="w-[400px] shrink-0">
-            <CalendarList
-              calendars={calendars}
-              selectedCalendarId={selectedCalendarId}
-              onSelectCalendar={setSelectedCalendarId}
-            />
-          </div>
-
-          {/* Right Column - Calendar Detail */}
-          <div className="flex-1">
-            {selectedCalendar ? (
-              <CalendarDetail
-                calendar={selectedCalendar}
-                onAddHoliday={() => setIsAddHolidayModalOpen(true)}
-                onEditHoliday={handleEditHoliday}
-                onDeleteHoliday={handleDeleteHoliday}
+        ) : (
+          <div className="flex gap-6">
+            {/* Left Column - Calendar List */}
+            <div className="w-[400px] shrink-0">
+              <CalendarList
+                calendars={calendars}
+                selectedCalendarId={selectedCalendarId}
+                onSelectCalendar={setSelectedCalendarId}
               />
-            ) : (
-              <div className="flex h-[400px] items-center justify-center rounded-lg border border-border bg-card">
-                <p className="text-muted-foreground">Select a calendar to view details</p>
-              </div>
-            )}
+            </div>
+
+            {/* Right Column - Calendar Detail */}
+            <div className="flex-1">
+              {selectedCalendar ? (
+                <CalendarDetail
+                  calendar={selectedCalendar}
+                  holidays={holidays}
+                  isLoadingHolidays={isLoadingHolidays}
+                  weekendDays={weekendDays}
+                  isLoadingWeekends={isLoadingWeekends}
+                  isSavingWeekends={isSavingWeekends}
+                  onWeekendToggle={handleWeekendToggle}
+                  onAddHoliday={() => setIsAddHolidayModalOpen(true)}
+                  onDeleteHoliday={handleDeleteHoliday}
+                />
+              ) : (
+                <div className="flex h-[400px] items-center justify-center rounded-lg border border-border bg-card">
+                  <p className="text-muted-foreground">Select a calendar to view details</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Modals */}
@@ -323,16 +325,14 @@ export default function PublicHolidaysScreen() {
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         onCreateCalendar={handleCreateCalendar}
+        isCreating={isCreating}
       />
 
       <AddHolidayModal
         open={isAddHolidayModalOpen}
-        onOpenChange={(open) => {
-          setIsAddHolidayModalOpen(open)
-          if (!open) setEditingHoliday(null)
-        }}
-        onAddHoliday={editingHoliday ? handleUpdateHoliday : handleAddHoliday}
-        editingHoliday={editingHoliday}
+        onOpenChange={setIsAddHolidayModalOpen}
+        onAddHoliday={handleAddHoliday}
+        isCreating={isCreatingHoliday}
       />
     </div>
   )

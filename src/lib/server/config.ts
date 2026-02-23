@@ -72,5 +72,20 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/site/${id}`,
     DELETE: (id: string) => `/site/${id}`,
   },
+  CALENDAR: {
+    CREATE: "/calender/create",
+    GET: "/calender/get",
+    SINGLE: "/calender/single-calendar",
+  },
+  WEEKEND: {
+    CREATE: "/weekend/create",
+    GET: "/weekend/get",
+  },
+  HOLIDAY: {
+    CREATE: "/holiday/create",
+    GET: "/holiday/get",
+    SINGLE: "/holiday/single",
+    DELETE: (id: number) => `/holiday/${id}`,
+  },
 } as const
 
