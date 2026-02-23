@@ -4,6 +4,7 @@
  */
 
 import { SERVER_CONFIG } from "./config"
+import { cookies } from "next/headers"
 
 export interface ServerApiResponse<T = unknown> {
   success: boolean
@@ -53,19 +54,27 @@ function buildUrl(endpoint: string, params?: RequestOptions["params"]): string {
 /**
  * Build request headers
  */
-function buildHeaders(options?: RequestOptions): HeadersInit {
+async function buildHeaders(options?: RequestOptions): Promise<HeadersInit> {
+  const cookieStore = await cookies()
+
+  // Get token from cookie (change name if needed)
+  const tokenFromCookie = cookieStore.get("access_token")?.value
+
+  const token = options?.token || tokenFromCookie
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json",
     ...options?.headers,
   }
 
-  if (options?.token) {
-    headers.Authorization = `Bearer ${options.token}`
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
   }
 
   return headers
 }
+
 
 /**
  * Handle API errors
@@ -110,7 +119,8 @@ export const serverApi = {
     const url = buildUrl(endpoint, options?.params)
     console.log(">> [API REQ] GET", url)
     try {
-      const headers = buildHeaders(options)
+      const url = buildUrl(endpoint, options?.params)
+      const headers = await buildHeaders(options)
 
       const response = await fetch(url, {
         method: "GET",
@@ -146,7 +156,9 @@ export const serverApi = {
     const url = buildUrl(endpoint, options?.params)
     console.log(">> [API REQ] POST", url, body)
     try {
-      const headers = buildHeaders(options)
+      // const headers = buildHeaders(options)
+      const url = buildUrl(endpoint, options?.params)
+      const headers = await buildHeaders(options)
 
       const response = await fetch(url, {
         method: "POST",
@@ -197,7 +209,8 @@ export const serverApi = {
     const url = buildUrl(endpoint, options?.params)
     console.log(">> [API REQ] PUT", url, body)
     try {
-      const headers = buildHeaders(options)
+      const url = buildUrl(endpoint, options?.params)
+      const headers = await buildHeaders(options)
 
       const response = await fetch(url, {
         method: "PUT",
@@ -234,7 +247,8 @@ export const serverApi = {
     const url = buildUrl(endpoint, options?.params)
     console.log(">> [API REQ] PATCH", url, body)
     try {
-      const headers = buildHeaders(options)
+      const url = buildUrl(endpoint, options?.params)
+      const headers = await buildHeaders(options)
 
       const response = await fetch(url, {
         method: "PATCH",
@@ -270,7 +284,8 @@ export const serverApi = {
     const url = buildUrl(endpoint, options?.params)
     console.log(">> [API REQ] DELETE", url)
     try {
-      const headers = buildHeaders(options)
+      const url = buildUrl(endpoint, options?.params)
+      const headers = await buildHeaders(options)
 
       const response = await fetch(url, {
         method: "DELETE",

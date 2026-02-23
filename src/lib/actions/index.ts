@@ -4,7 +4,6 @@
  */
 
 export {
-  loginAction,
   logoutAction,
   getCurrentUserAction,
   isAuthenticatedAction,

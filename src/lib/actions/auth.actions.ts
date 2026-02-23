@@ -1,11 +1,5 @@
 "use server"
 
-/**
- * Auth Server Actions
- * All authentication-related server actions
- * These run on the server - backend URL is NEVER exposed to browser
- */
-
 import { cookies } from "next/headers"
 import { serverApi, API_ENDPOINTS } from "@/lib/server"
 import type { LoginResponse, User } from "@/lib/types"
@@ -103,6 +97,28 @@ export async function loginAction(username: string, password: string) {
   }
 }
 
+// export async function loginAction(username: string, password: string) {
+//   const response = await serverApi.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, {
+//     name: username,
+//     password,
+//   })
+
+//   console.log("LOGIN RESPONSE:", response);
+
+// if (!response.success) {
+//   return {
+//     success: false,
+//     message: response.message || "Login failed",
+//   };
+// }
+
+// return {
+//   success: true,
+//   message: "Login successful",
+//   data: response.data,
+// };
+// }
+
 /**
  * Logout action
  * Clears auth cookies
@@ -185,40 +201,4 @@ export async function resetPasswordAction(
  * Get admin profile
  * Fetches the authenticated admin's profile data
  */
-export async function getProfileAction() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("access_token")?.value
 
-  if (!token) {
-    return {
-      success: false,
-      message: "Not authenticated",
-      data: null,
-    }
-  }
-
-  const response = await serverApi.get<AdminProfile>(API_ENDPOINTS.PROFILE.ME, {
-    token,
-  })
-
-  // Store user type in a cookie for middleware/client access
-  if (response.success && response.data) {
-    cookieStore.set("user_type", response.data.user_type, {
-      httpOnly: false, // Allow client-side access for menu rendering
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    })
-
-    cookieStore.set("user_name", response.data.name, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    })
-  }
-
-  return response
-}
