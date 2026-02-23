@@ -38,7 +38,7 @@ export function DisciplinaryRecordsTab() {
                                 Type of offense
                             </Label>
                             <Select
-                                value={watch("disciplinary_records.0.offense_type")}
+                                value={watch("disciplinary_records.0.offense_type") ?? undefined}
                                 onValueChange={(v) => setValue("disciplinary_records.0.offense_type", v as any)}
                             >
                                 <SelectTrigger id="offense_type" className="h-10">

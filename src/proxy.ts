@@ -22,12 +22,7 @@ export function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("access_token")?.value
 
   // If user is not authenticated and trying to access a protected route
-  if (!accessToken && !isPublicRoute) {
-    const loginUrl = new URL("/login", request.url)
-    // Store the original URL to redirect back after login
-    loginUrl.searchParams.set("callbackUrl", pathname)
-    return NextResponse.redirect(loginUrl)
-  }
+ 
 
   // If user is authenticated and trying to access login page, redirect to home
   if (accessToken && isPublicRoute) {

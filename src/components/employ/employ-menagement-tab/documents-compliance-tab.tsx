@@ -78,7 +78,7 @@ export function DocumentsComplianceTab() {
               <Label htmlFor="license_type" className="text-sm font-medium text-muted-foreground mb-2 block">
                 License Type
               </Label>
-              <Select value={watch("compliance_documents.drivers_license.type")} onValueChange={(v) => setValue("compliance_documents.drivers_license.type", v)}>
+              <Select value={watch("compliance_documents.drivers_license.type") ?? undefined} onValueChange={(v) => setValue("compliance_documents.drivers_license.type", v)}>
                 <SelectTrigger id="license_type" className="h-10">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>

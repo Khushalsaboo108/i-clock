@@ -24,7 +24,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Plus, X, Calendar } from "lucide-react"
-import type { WorkCycle, ShiftAllocation } from "./work-cycles-screen"
+import type { WorkCycle, ShiftAllocation } from "@/lib/types"
 
 type WorkCycleFormModalProps = {
     isOpen: boolean

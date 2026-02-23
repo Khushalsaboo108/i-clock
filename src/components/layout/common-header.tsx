@@ -10,6 +10,7 @@ import { Menu } from "lucide-react"
 import ModeToggle from "@/components/mode-toggle"
 import { Home, Users, BarChart3, Clock, CalendarOff, Repeat, Settings2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 interface NavItem {
   icon: LucideIcon

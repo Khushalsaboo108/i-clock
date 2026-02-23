@@ -4,13 +4,11 @@
  */
 
 export {
-  loginAction,
   logoutAction,
   getCurrentUserAction,
   isAuthenticatedAction,
   forgotPasswordAction,
   resetPasswordAction,
-  getProfileAction,
   type AdminProfile,
   type UserType,
 } from "./auth.actions"

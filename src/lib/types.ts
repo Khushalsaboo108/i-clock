@@ -151,11 +151,28 @@ export interface AbsentCode {
 }
 
 // Work Cycle Types
+export interface ShiftAllocation {
+  day: number
+  shiftCodes: string[]
+}
+
 export interface WorkCycle {
   id: string
-  name: string
-  daysOn: number
-  daysOff: number
+  name?: string
+  code: string
+  description: string
+  startDate: string
+  cycleLength: number
+  cycleLengthType: "days" | "weeks"
+  clockDetectionMethod: "directional" | "auto-detection"
+  targetType: "weekly" | "fortnightly" | "monthly"
+  targetHours: number
+  columnLimit: number | null
+  overflowHandling: "carry-forward" | "cap" | "lose"
+  balanceRule: "carry-forward" | "reset" | "cap"
+  isActive: boolean
+  shiftAllocations: ShiftAllocation[]
+  employeeCount?: number
   createdAt: string
   updatedAt: string
 }
