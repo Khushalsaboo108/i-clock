@@ -41,7 +41,7 @@ export default function CommonHeader() {
       {
         icon: CalendarOff,
         title: "Public Holiday",
-        route: `/public-holidays?siteId=${params.id}`,
+        route: `/company/${params.id}/public-holidays`,
       },
       {
         icon: Clock,

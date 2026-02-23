@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import CalendarList from "@/components/holidays/calendar-list"
 import CalendarDetail from "@/components/holidays/calendar-detail"
 import CreateCalendarModal from "@/components/holidays/create-calendar-modal"
@@ -22,8 +22,10 @@ import type { CalendarApiItem, HolidayApiItem, WeekendData } from "@/lib/actions
 import { showError, showSuccess } from "@/lib/toast"
 
 export default function PublicHolidaysScreen() {
+  const params = useParams();
+
   const searchParams = useSearchParams()
-  const siteId = searchParams.get("siteId")
+  const siteId = params?.id
 
   // Calendar state
   const [calendars, setCalendars] = useState<CalendarApiItem[]>([])
