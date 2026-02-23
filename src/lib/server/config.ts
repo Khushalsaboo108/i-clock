@@ -86,6 +86,12 @@ export const API_ENDPOINTS = {
     GET: "/holiday/get",
     SINGLE: "/holiday/single",
     DELETE: (id: number) => `/holiday/${id}`,
+    WORKING_RULES: {
+      BASE: "/working-rule/get",
+      CREATE: "/working-rule/create",
+      SINGLE: "/working-rule/single",
+      UPDATE: (id: string) => `/working-rule/${id}`,
+      DELETE: (id: string) => `/working-rule/${id}`,
+    },
   },
-} as const
-
+} as const;

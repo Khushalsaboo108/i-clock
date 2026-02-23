@@ -29,3 +29,5 @@ export type { WeekendData } from "./weekend.actions"
 
 export { createHolidayAction, getHolidaysAction, getSingleHolidayAction, deleteHolidayAction } from "./holiday.actions"
 export type { HolidayApiItem, HolidayPagination } from "./holiday.actions"
+export { getWorkRules, getSingleWorkRule, createWorkRule, updateWorkRule, deleteWorkRule } from "./work-rules.actions"
+export type { WorkRule, CreateWorkRulePayload, UpdateWorkRulePayload, WorkRulesPagination} from "./work-rules.actions"
