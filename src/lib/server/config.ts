@@ -72,5 +72,12 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/site/${id}`,
     DELETE: (id: string) => `/site/${id}`,
   },
+  WORKING_RULES: {
+    BASE: "/working-rule/get",
+    CREATE: "/working-rule/create",
+    SINGLE: "/working-rule/single",
+    UPDATE: (id: string) => `/working-rule/${id}`,
+    DELETE: (id: string) => `/working-rule/${id}`,
+  },
 } as const
 
