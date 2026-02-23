@@ -35,7 +35,8 @@ import {
   User,
   AlertCircle,
 } from "lucide-react"
-import { loginAction } from "@/lib/actions/auth.actions"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -68,20 +69,40 @@ function LoginForm() {
     setError(null);
 
     try {
-      const result = await loginAction(data.username, data.password);
+      const response = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: data.username,
+          password: data.password,
+        }),
+        credentials: "include",
+      })
 
-      if (!result.success) {
-        setError(result.message || "Login failed");
-        return;
+      const result = await response.json()
+      console.log("[Login] Response:", result)
+
+      if (!response.ok || !result.success) {
+        setError(result.message || "Login failed")
+        return
       }
 
-      router.push("/");
-      router.refresh();
+      // Store access_token in a cookie for server-side access
+      if (result.data?.access_token) {
+        // Set the access_token cookie for middleware/auth checks
+        document.cookie = `access_token=${result.data.access_token}; path=/; max-age=${60 * 60 * 24}` // 1 day
+      }
+
+      // Login successful - redirect to home
+      router.push("/")
+      router.refresh()
     } catch (err) {
-      console.error("[LoginPage] Login error:", err instanceof Error ? err.message : err)
-      setError("An unexpected error occurred. Please try again.")
+      console.error("[LoginPage] Login error:", err)
+      setError("Unable to connect to server. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 
